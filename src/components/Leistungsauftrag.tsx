@@ -31,7 +31,7 @@ const LEISTUNG_OPTIONEN: LeistungOption[] = [
   { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' }, // 7
   { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' }, // 8
   { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' }, // 9
-  { beschreibung: 'Einsatz Wurzelschneider bis DN 150 (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' }, // 10
+  { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00', mengeTyp: 'h' }, // 10
   { beschreibung: 'Elektrische Spirale', preis: '35,00', mengeTyp: 'h' }, // 11
   { beschreibung: 'Stundenlohnarbeiten', preis: '58,00', mengeTyp: 'h_16' }, // 12
   { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%', mengeTyp: 'zuschlag' }, // 13
@@ -264,12 +264,6 @@ function Leistungsauftrag() {
         <div className="form-section">
           <div className="form-section-header">
             <h3 className="form-section-title">Leistungen</h3>
-            <button className="btn-add" onClick={addLeistungRow}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Position hinzufügen
-            </button>
           </div>
 
           <div className="table-wrapper">
@@ -278,8 +272,8 @@ function Leistungsauftrag() {
                 <tr>
                   <th className="beschreibung-col">Beschreibung / Netto</th>
                   <th style={{ display: 'none' }}></th>
-                  <th>Einheit</th>
-                  <th>Menge</th>
+                  <th className="text-center">Einheit</th>
+                  <th className="text-center">Mengenspalte</th>
                   <th>Bemerkung</th>
                   <th></th>
                 </tr>
@@ -361,9 +355,11 @@ function Leistungsauftrag() {
                                 }}
                               >
                                 {option.beschreibung.includes('\n') ? (
-                                  option.beschreibung.split('\n').map((line, idx) => (
-                                    <div key={idx}>{line}</div>
-                                  ))
+                                  <div className="custom-select-option-multiline">
+                                    {option.beschreibung.split('\n').map((line, idx) => (
+                                      <div key={idx}>{line}</div>
+                                    ))}
+                                  </div>
                                 ) : (
                                   <div>
                                     {option.beschreibung}
@@ -385,7 +381,7 @@ function Leistungsauftrag() {
                         onChange={(e) => handleLeistungChange(row.id, 'einheit', e.target.value)}
                       />
                     </td>
-                    <td>
+                    <td className="text-center">
                       <div
                         className="table-input table-input-static"
                         title="Einheit wird automatisch gesetzt"
@@ -397,7 +393,7 @@ function Leistungsauftrag() {
                         })()}
                       </div>
                     </td>
-                    <td>
+                    <td className="text-center">
                       {(() => {
                         const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
                         const mengeTyp = selectedOption?.mengeTyp
@@ -419,9 +415,12 @@ function Leistungsauftrag() {
                         const buildTimeOptions = (max: number) => {
                           const options: string[] = ['']
                           for (let v = 0.5; v <= max; v += 0.5) {
-                            // 0,5; 1; 1,5; ...
+                            // 0,5; 1,0; 1,5; ...
                             const isHalf = v % 1 !== 0
-                            options.push(isHalf ? `${v}`.replace('.', ',') : `${v}`)
+                            const formattedValue = isHalf 
+                              ? `${v}`.replace('.', ',') 
+                              : `${v},0`
+                            options.push(formattedValue)
                           }
                           return options
                         }
@@ -515,6 +514,13 @@ function Leistungsauftrag() {
               </tbody>
             </table>
           </div>
+          
+          <button className="btn-add" onClick={addLeistungRow} style={{ marginTop: '1rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Position hinzufügen
+          </button>
         </div>
 
         <div className="form-row">

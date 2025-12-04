@@ -48,7 +48,7 @@ export interface TagesberichtData {
   }>
   materialien: Array<{
     beschreibung: string
-    mengeStd: string
+  mengeStd: string
   }>
   kundeSignatur: string
   mitarbeiterSignatur: string
@@ -74,7 +74,17 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 12
+  yPos += 7
+  
+  // Firmendaten (Kontaktinformationen)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
+  yPos += 5
+  doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
+  yPos += 5
+  doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
+  yPos += 8
 
   // Title
   doc.setFontSize(14)
@@ -229,6 +239,18 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     doc.rect(110, signatureY + 2, signatureWidth, signatureHeight)
   }
 
+  // MwSt-Hinweis
+  if (yPos < 250) {
+    yPos = signatureY + signatureHeight + 15
+  } else {
+    doc.addPage()
+    yPos = 260
+  }
+  
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'italic')
+  doc.text('Alle Preise sind Nettopreise, zzgl. der gesetzlichen MwSt.', 105, yPos, { align: 'center' })
+
   doc.save(`Leistungsauftrag_${data.datum || 'Datum'}.pdf`)
 }
 
@@ -244,7 +266,17 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 12
+  yPos += 7
+  
+  // Firmendaten (Kontaktinformationen)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
+  yPos += 5
+  doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
+  yPos += 5
+  doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
+  yPos += 8
 
   // Title
   doc.setFontSize(14)
@@ -415,8 +447,8 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     doc.setFont('helvetica', 'bold')
     doc.text('Material/Beschreibung', 20, yPos)
     doc.text('Menge/Std.', 120, yPos)
-    yPos += 7
-    
+  yPos += 7
+
     // Trennlinie
     doc.setLineWidth(0.5)
     doc.line(20, yPos, 190, yPos)
@@ -437,7 +469,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     })
   } else {
     doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
+  doc.setFont('helvetica', 'normal')
     doc.text('Keine Materialien angegeben', 20, yPos)
     yPos += 7
   }

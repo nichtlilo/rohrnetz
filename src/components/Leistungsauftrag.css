@@ -136,6 +136,14 @@
   border-bottom: 2px solid #e0e0e0;
 }
 
+.leistungen-table th.text-center {
+  text-align: center;
+}
+
+.leistungen-table td.text-center {
+  text-align: center;
+}
+
 .leistungen-table td {
   padding: 0.5rem;
   border-bottom: 1px solid #e0e0e0;
@@ -240,6 +248,12 @@
 .custom-select-option.selected {
   background-color: #e3f2fd;
   color: #1976d2;
+}
+
+.custom-select-option-multiline {
+  line-height: 1.6;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
 }
 
 .table-input {

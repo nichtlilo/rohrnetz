@@ -472,7 +472,7 @@ function Tagesbericht() {
 
         <div className="form-section">
           <div className="form-section-header">
-            <h3 className="form-section-title">Materialverbrauch und Maschinenstunden</h3>
+          <h3 className="form-section-title">Materialverbrauch und Maschinenstunden</h3>
             <button className="btn-add" onClick={addMaterialRow}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -494,22 +494,22 @@ function Tagesbericht() {
                 {formData.materialien.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <input
-                        type="text"
+              <input
+                type="text"
                         className="table-input"
                         placeholder="Material/Beschreibung"
                         value={row.beschreibung}
                         onChange={(e) => handleMaterialChange(row.id, 'beschreibung', e.target.value)}
-                      />
+              />
                     </td>
                     <td>
-                      <input
-                        type="text"
+              <input
+                type="text"
                         className="table-input"
                         placeholder="Menge/Std."
                         value={row.mengeStd}
                         onChange={(e) => handleMaterialChange(row.id, 'mengeStd', e.target.value)}
-                      />
+              />
                     </td>
                     <td>
                       <button
