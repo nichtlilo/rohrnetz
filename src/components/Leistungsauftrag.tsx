@@ -1,7 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import SignaturePad from './SignaturePad'
 import { generateLeistungsauftragPDF } from '../utils/pdfGenerator'
 import './Leistungsauftrag.css'
+
+interface LeistungOption {
+  beschreibung: string
+  preis: string
+}
+
+const LEISTUNG_OPTIONEN: LeistungOption[] = [
+  { beschreibung: 'Bereitschaftseinsatz - Geschäftszeit', preis: '25,00' },
+  { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00' },
+  { beschreibung: 'Einleitgebühren - AG', preis: '10,96' },
+  { beschreibung: 'Einleitgebühren - KKA', preis: '30,11' },
+  { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00' },
+  { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00' },
+  { beschreibung: 'TV - Befahrung', preis: '104,00' },
+  { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00' },
+  { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00' },
+  { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00' },
+  { beschreibung: 'Elektrische Spirale', preis: '35,00' },
+  { beschreibung: 'Stundenlohnarbeiten', preis: '58,00' },
+  { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%' },
+  { beschreibung: 'Einsatz FUNKE Rohrpflaster', preis: '35,00' },
+  { beschreibung: 'Einsatz Rohrgranate 1000 ml', preis: '38,00' }
+]
 
 interface LeistungRow {
   id: string
@@ -9,7 +32,6 @@ interface LeistungRow {
   einheit: string
   stundenStueck: string
   m3m: string
-  km: string
   bemerkung: string
 }
 
@@ -17,6 +39,7 @@ interface LeistungsauftragData {
   einsatzort: string
   artDerArbeit: string
   rgEmpfaenger: string
+  email: string
   datum: string
   monteur: string
   telefonNr: string
@@ -32,6 +55,7 @@ function Leistungsauftrag() {
     einsatzort: '',
     artDerArbeit: '',
     rgEmpfaenger: '',
+    email: '',
     datum: '',
     monteur: '',
     telefonNr: '',
@@ -42,7 +66,6 @@ function Leistungsauftrag() {
       einheit: '',
       stundenStueck: '',
       m3m: '',
-      km: '',
       bemerkung: ''
     }],
     sonstiges: '',
@@ -52,18 +75,84 @@ function Leistungsauftrag() {
 
   const [showKundeSignatur, setShowKundeSignatur] = useState(false)
   const [showMitarbeiterSignatur, setShowMitarbeiterSignatur] = useState(false)
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [dropdownPositions, setDropdownPositions] = useState<Record<string, { top: number; left: number; width: number }>>({})
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.keys(openDropdowns).forEach(id => {
+        if (openDropdowns[id] && dropdownRefs.current[id] && !dropdownRefs.current[id]?.contains(event.target as Node)) {
+          setOpenDropdowns(prev => ({ ...prev, [id]: false }))
+        }
+      })
+    }
+
+    if (Object.values(openDropdowns).some(open => open)) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [openDropdowns])
+
+  useEffect(() => {
+    const updatePositions = () => {
+      Object.keys(openDropdowns).forEach(id => {
+        if (openDropdowns[id] && dropdownRefs.current[id]) {
+          const selectElement = dropdownRefs.current[id]?.querySelector('.custom-select') as HTMLElement
+          if (selectElement) {
+            const rect = selectElement.getBoundingClientRect()
+            setDropdownPositions(prev => ({
+              ...prev,
+              [id]: {
+                top: rect.bottom,
+                left: rect.left,
+                width: rect.width
+              }
+            }))
+          }
+        }
+      })
+    }
+
+    if (Object.values(openDropdowns).some(open => open)) {
+      window.addEventListener('scroll', updatePositions, true)
+      window.addEventListener('resize', updatePositions)
+      updatePositions()
+      return () => {
+        window.removeEventListener('scroll', updatePositions, true)
+        window.removeEventListener('resize', updatePositions)
+      }
+    }
+  }, [openDropdowns])
 
   const handleInputChange = (field: keyof LeistungsauftragData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleLeistungChange = (id: string, field: keyof LeistungRow, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      leistungen: prev.leistungen.map(row =>
-        row.id === id ? { ...row, [field]: value } : row
-      )
-    }))
+    setFormData(prev => {
+      const updatedLeistungen = prev.leistungen.map(row => {
+        if (row.id === id) {
+          const updatedRow = { ...row, [field]: value }
+          
+          // Wenn Beschreibung geändert wird, automatisch den Preis eintragen
+          if (field === 'beschreibung' && value) {
+            const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === value)
+            if (selectedOption) {
+              updatedRow.einheit = selectedOption.preis
+            }
+          }
+          
+          return updatedRow
+        }
+        return row
+      })
+      
+      return {
+        ...prev,
+        leistungen: updatedLeistungen
+      }
+    })
   }
 
   const addLeistungRow = () => {
@@ -75,7 +164,6 @@ function Leistungsauftrag() {
         einheit: '',
         stundenStueck: '',
         m3m: '',
-        km: '',
         bemerkung: ''
       }]
     }))
@@ -122,19 +210,6 @@ function Leistungsauftrag() {
 
         <div className="form-group">
           <label className="form-label">
-            Art der Arbeit <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Beschreibung der Arbeit"
-            value={formData.artDerArbeit}
-            onChange={(e) => handleInputChange('artDerArbeit', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">
             RG - Empfänger <span className="required">*</span>
           </label>
           <input
@@ -143,6 +218,30 @@ function Leistungsauftrag() {
             placeholder="Rechnungsempfänger"
             value={formData.rgEmpfaenger}
             onChange={(e) => handleInputChange('rgEmpfaenger', e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">E-Mail</label>
+          <input
+            type="email"
+            className="form-input"
+            placeholder="E-Mail-Adresse des Kunden"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">
+            Art der Arbeit <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Beschreibung der Arbeit"
+            value={formData.artDerArbeit}
+            onChange={(e) => handleInputChange('artDerArbeit', e.target.value)}
           />
         </div>
 
@@ -161,11 +260,9 @@ function Leistungsauftrag() {
             <table className="leistungen-table">
               <thead>
                 <tr>
-                  <th>Beschreibung</th>
-                  <th>Einheit/Netto</th>
+                  <th className="beschreibung-col" colSpan={2}>Beschreibung / Einheit/Netto</th>
                   <th>Stunden/Stück</th>
                   <th>m³/m</th>
-                  <th>km</th>
                   <th>Bemerkung</th>
                   <th></th>
                 </tr>
@@ -173,16 +270,84 @@ function Leistungsauftrag() {
               <tbody>
                 {formData.leistungen.map((row) => (
                   <tr key={row.id}>
-                    <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="z.B. Betriebsstunden"
-                        value={row.beschreibung}
-                        onChange={(e) => handleLeistungChange(row.id, 'beschreibung', e.target.value)}
-                      />
+                    <td className="beschreibung-cell" colSpan={2}>
+                      <div 
+                        className="custom-select-wrapper"
+                        ref={(el) => { dropdownRefs.current[row.id] = el }}
+                      >
+                        <div
+                          className="custom-select"
+                          onClick={(e) => {
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                            setDropdownPositions(prev => ({
+                              ...prev,
+                              [row.id]: {
+                                top: rect.bottom,
+                                left: rect.left,
+                                width: rect.width
+                              }
+                            }))
+                            setOpenDropdowns(prev => ({ ...prev, [row.id]: !prev[row.id] }))
+                          }}
+                        >
+                          {row.beschreibung ? (
+                            <div className="custom-select-value">
+                              {row.beschreibung.includes('\n') ? (
+                                row.beschreibung.split('\n').map((line, idx) => (
+                                  <div key={idx}>{line}</div>
+                                ))
+                              ) : (
+                                <div>{row.beschreibung} - {row.einheit}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="custom-select-placeholder">Beschreibung wählen</div>
+                          )}
+                          <svg className="custom-select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        {openDropdowns[row.id] && dropdownPositions[row.id] && (
+                          <div 
+                            className="custom-select-dropdown"
+                            style={{
+                              top: `${dropdownPositions[row.id].top}px`,
+                              left: `${dropdownPositions[row.id].left}px`,
+                              width: `${dropdownPositions[row.id].width}px`
+                            }}
+                          >
+                            <div
+                              className="custom-select-option"
+                              onClick={() => {
+                                handleLeistungChange(row.id, 'beschreibung', '')
+                                setOpenDropdowns(prev => ({ ...prev, [row.id]: false }))
+                              }}
+                            >
+                              Beschreibung wählen
+                            </div>
+                            {LEISTUNG_OPTIONEN.map((option) => (
+                              <div
+                                key={option.beschreibung}
+                                className={`custom-select-option ${row.beschreibung === option.beschreibung ? 'selected' : ''}`}
+                                onClick={() => {
+                                  handleLeistungChange(row.id, 'beschreibung', option.beschreibung)
+                                  setOpenDropdowns(prev => ({ ...prev, [row.id]: false }))
+                                }}
+                              >
+                                {option.beschreibung.includes('\n') ? (
+                                  option.beschreibung.split('\n').map((line, idx) => (
+                                    <div key={idx}>{line}</div>
+                                  ))
+                                ) : (
+                                  <div>{option.beschreibung} - {option.preis}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </td>
-                    <td>
+                    <td style={{ display: 'none' }}>
                       <input
                         type="text"
                         className="table-input"
@@ -205,14 +370,6 @@ function Leistungsauftrag() {
                         className="table-input"
                         value={row.m3m}
                         onChange={(e) => handleLeistungChange(row.id, 'm3m', e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        value={row.km}
-                        onChange={(e) => handleLeistungChange(row.id, 'km', e.target.value)}
                       />
                     </td>
                     <td>

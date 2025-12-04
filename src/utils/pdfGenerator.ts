@@ -1,9 +1,11 @@
 import jsPDF from 'jspdf'
+import { COMPANY_LOGO_BASE64 } from '../assets/companyLogo'
 
 export interface LeistungsauftragData {
   einsatzort: string
   artDerArbeit: string
   rgEmpfaenger: string
+  email: string
   datum: string
   monteur: string
   telefonNr: string
@@ -13,7 +15,6 @@ export interface LeistungsauftragData {
     einheit: string
     stundenStueck: string
     m3m: string
-    km: string
     bemerkung: string
   }>
   sonstiges: string
@@ -39,13 +40,16 @@ export interface TagesberichtData {
   sonstiges: string
   container: string
   atlas: string
+  spueler: string
   arbeitsbeschreibungen: Array<{
     beschreibung: string
     mengeStd: string
     einheit: string
   }>
-  materialBeschreibung: string
-  mengeStd: string
+  materialien: Array<{
+    beschreibung: string
+    mengeStd: string
+  }>
   kundeSignatur: string
   mitarbeiterSignatur: string
 }
@@ -62,16 +66,15 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const doc = new jsPDF()
   let yPos = 20
 
+  if (COMPANY_LOGO_BASE64) {
+    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 10, 40, 12)
+  }
+
   // Header
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 8
-
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'normal')
-  doc.text('PDF Formular Generator', 105, yPos, { align: 'center' })
-  yPos += 10
+  yPos += 12
 
   // Title
   doc.setFontSize(14)
@@ -101,6 +104,12 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text('RG - Empfänger:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text(data.rgEmpfaenger || '-', 60, yPos)
+  yPos += 7
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('E-Mail:', 20, yPos)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.email || '-', 60, yPos)
   yPos += 7
 
   doc.setFont('helvetica', 'bold')
@@ -134,8 +143,8 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   yPos += 7
 
   if (data.leistungen && data.leistungen.length > 0) {
-    const tableHeaders = ['Beschreibung', 'Einheit/Netto', 'Std./Stk.', 'm³/m', 'km', 'Bemerkung']
-    const colWidths = [50, 25, 20, 20, 20, 30]
+    const tableHeaders = ['Beschreibung', 'Einheit/Netto', 'Std./Stk.', 'm³/m', 'Bemerkung']
+    const colWidths = [70, 25, 20, 20, 40]
     let xPos = 20
 
     // Table Header
@@ -162,7 +171,6 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
         row.einheit || '',
         row.stundenStueck || '',
         row.m3m || '',
-        row.km || '',
         row.bemerkung || ''
       ]
       rowData.forEach((cell, i) => {
@@ -228,16 +236,15 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   const doc = new jsPDF()
   let yPos = 20
 
+  if (COMPANY_LOGO_BASE64) {
+    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 10, 40, 12)
+  }
+
   // Header
   doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 8
-
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'normal')
-  doc.text('PDF Formular Generator', 105, yPos, { align: 'center' })
-  yPos += 10
+  yPos += 12
 
   // Title
   doc.setFontSize(14)
@@ -312,15 +319,16 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFont('helvetica', 'normal')
   
   const equipment = [
-    { label: 'Kipper/Montage:', value: data.kipperMontage },
-    { label: 'Minibagger:', value: data.minibagger },
-    { label: 'Radlader:', value: data.radlader },
-    { label: 'BS aufgestellt am:', value: data.bsAufgestelltAm },
-    { label: 'MAN - RB 810:', value: data.manRb810 },
-    { label: 'Neusson:', value: data.neusson },
-    { label: 'Sonstiges:', value: data.sonstiges },
+    { label: 'Kipper:', value: data.kipperMontage },
+    { label: 'MAN RB 810:', value: data.manRb810 },
     { label: 'Container:', value: data.container },
-    { label: 'Atlas:', value: data.atlas }
+    { label: 'Minibagger:', value: data.minibagger },
+    { label: 'Neusson:', value: data.neusson },
+    { label: 'Atlas/JCB:', value: data.atlas },
+    { label: 'Radlader:', value: data.radlader },
+    { label: 'Spüler:', value: data.spueler },
+    { label: 'Sonstiges:', value: data.sonstiges },
+    { label: 'BS aufgestellt am:', value: data.bsAufgestelltAm }
   ]
 
   let col1X = 20
@@ -395,17 +403,45 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Materialverbrauch und Maschinenstunden', 20, yPos)
   yPos += 7
 
-  doc.setFontSize(10)
+  // Materialverbrauch und Maschinenstunden
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
-  doc.text('Material/Beschreibung:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.materialBeschreibung || '-', 70, yPos)
-  yPos += 7
+  doc.text('Materialverbrauch und Maschinenstunden', 20, yPos)
+  yPos += 10
 
-  doc.setFont('helvetica', 'bold')
-  doc.text('Menge/Std.:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.mengeStd || '-', 70, yPos)
+  if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.mengeStd)) {
+    // Tabellenkopf
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Material/Beschreibung', 20, yPos)
+    doc.text('Menge/Std.', 120, yPos)
+    yPos += 7
+    
+    // Trennlinie
+    doc.setLineWidth(0.5)
+    doc.line(20, yPos, 190, yPos)
+    yPos += 5
+
+    // Materialien
+    doc.setFont('helvetica', 'normal')
+    data.materialien.forEach((material) => {
+      if (material.beschreibung || material.mengeStd) {
+        if (yPos > 250) {
+          doc.addPage()
+          yPos = 20
+        }
+        doc.text(material.beschreibung || '-', 20, yPos)
+        doc.text(material.mengeStd || '-', 120, yPos)
+        yPos += 7
+      }
+    })
+  } else {
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Keine Materialien angegeben', 20, yPos)
+    yPos += 7
+  }
+  
   yPos += 10
 
   // Signatures

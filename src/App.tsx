@@ -14,7 +14,7 @@ function App() {
     // Simuliere Loading-Zeit
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 2000) // 2 Sekunden Loading-Animation
+    }, 2000) // 3 Sekunden Loading-Animation
 
     return () => clearTimeout(timer)
   }, [])
