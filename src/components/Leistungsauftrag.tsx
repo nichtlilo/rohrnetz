@@ -31,7 +31,7 @@ const LEISTUNG_OPTIONEN: LeistungOption[] = [
   { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' }, // 7
   { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' }, // 8
   { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' }, // 9
-  { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00', mengeTyp: 'h' }, // 10
+  { beschreibung: 'Einsatz Wurzelschneider bis DN 150 (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' }, // 10
   { beschreibung: 'Elektrische Spirale', preis: '35,00', mengeTyp: 'h' }, // 11
   { beschreibung: 'Stundenlohnarbeiten', preis: '58,00', mengeTyp: 'h_16' }, // 12
   { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%', mengeTyp: 'zuschlag' }, // 13
