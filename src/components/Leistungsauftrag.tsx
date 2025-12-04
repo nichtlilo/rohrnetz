@@ -3,27 +3,40 @@ import SignaturePad from './SignaturePad'
 import { generateLeistungsauftragPDF } from '../utils/pdfGenerator'
 import './Leistungsauftrag.css'
 
+type MengeTyp = 'psch' | 'm3' | 'h' | 'h_16' | 'zuschlag' | 'stueck' | 'stueck_10'
+
 interface LeistungOption {
   beschreibung: string
   preis: string
+  mengeTyp: MengeTyp
+}
+
+const MENGE_LABEL: Record<MengeTyp, string> = {
+  psch: 'PSCH',
+  m3: 'm³',
+  h: 'h',
+  h_16: 'h',
+  zuschlag: '%',
+  stueck: 'Stk.',
+  stueck_10: 'Stk.'
 }
 
 const LEISTUNG_OPTIONEN: LeistungOption[] = [
-  { beschreibung: 'Bereitschaftseinsatz - Geschäftszeit', preis: '25,00' },
-  { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00' },
-  { beschreibung: 'Einleitgebühren - AG', preis: '10,96' },
-  { beschreibung: 'Einleitgebühren - KKA', preis: '30,11' },
-  { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00' },
-  { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00' },
-  { beschreibung: 'TV - Befahrung', preis: '104,00' },
-  { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00' },
-  { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00' },
-  { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00' },
-  { beschreibung: 'Elektrische Spirale', preis: '35,00' },
-  { beschreibung: 'Stundenlohnarbeiten', preis: '58,00' },
-  { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%' },
-  { beschreibung: 'Einsatz FUNKE Rohrpflaster', preis: '35,00' },
-  { beschreibung: 'Einsatz Rohrgranate 1000 ml', preis: '38,00' }
+  { beschreibung: 'Bereitschaftseinsatz - Geschäftszeit', preis: '25,00', mengeTyp: 'psch' }, // 1
+  { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00', mengeTyp: 'psch' }, // 2
+  { beschreibung: 'Einleitgebühren - AG', preis: '10,96', mengeTyp: 'm3' }, // 3
+  { beschreibung: 'Einleitgebühren - KKA', preis: '30,11', mengeTyp: 'm3' }, // 4
+  { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00', mengeTyp: 'h' }, // 5
+  { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00', mengeTyp: 'h' }, // 6
+  { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' }, // 7
+  { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' }, // 8
+  { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' }, // 9
+  { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00', mengeTyp: 'h' }, // 10
+  { beschreibung: 'Elektrische Spirale', preis: '35,00', mengeTyp: 'h' }, // 11
+  { beschreibung: 'Stundenlohnarbeiten', preis: '58,00', mengeTyp: 'h_16' }, // 12
+  { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%', mengeTyp: 'zuschlag' }, // 13
+  { beschreibung: 'Einsatz FUNKE Rohrpflaster', preis: '35,00', mengeTyp: 'stueck' }, // 14
+  { beschreibung: 'Einsatz Rohrgranate 1000 ml', preis: '38,00', mengeTyp: 'stueck_10' } // 15
 ]
 
 interface LeistungRow {
@@ -136,11 +149,14 @@ function Leistungsauftrag() {
           const updatedRow = { ...row, [field]: value }
           
           // Wenn Beschreibung geändert wird, automatisch den Preis eintragen
-          if (field === 'beschreibung' && value) {
+          if (field === 'beschreibung') {
             const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === value)
             if (selectedOption) {
               updatedRow.einheit = selectedOption.preis
             }
+            // Menge zurücksetzen, wenn Position gewechselt wird
+            updatedRow.stundenStueck = ''
+            updatedRow.m3m = ''
           }
           
           return updatedRow
@@ -260,9 +276,10 @@ function Leistungsauftrag() {
             <table className="leistungen-table">
               <thead>
                 <tr>
-                  <th className="beschreibung-col" colSpan={2}>Beschreibung / Einheit/Netto</th>
-                  <th>Stunden/Stück</th>
-                  <th>m³/m</th>
+                  <th className="beschreibung-col">Beschreibung / Netto</th>
+                  <th style={{ display: 'none' }}></th>
+                  <th>Einheit</th>
+                  <th>Menge</th>
                   <th>Bemerkung</th>
                   <th></th>
                 </tr>
@@ -270,7 +287,7 @@ function Leistungsauftrag() {
               <tbody>
                 {formData.leistungen.map((row) => (
                   <tr key={row.id}>
-                    <td className="beschreibung-cell" colSpan={2}>
+                    <td className="beschreibung-cell">
                       <div 
                         className="custom-select-wrapper"
                         ref={(el) => { dropdownRefs.current[row.id] = el }}
@@ -297,7 +314,16 @@ function Leistungsauftrag() {
                                   <div key={idx}>{line}</div>
                                 ))
                               ) : (
-                                <div>{row.beschreibung} - {row.einheit}</div>
+                                (() => {
+                                  const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
+                                  const mengeLabel = selectedOption ? MENGE_LABEL[selectedOption.mengeTyp] : ''
+                                  return (
+                                    <div>
+                                      {row.beschreibung}
+                                      {mengeLabel && ` [${mengeLabel}]`} – {row.einheit}
+                                    </div>
+                                  )
+                                })()
                               )}
                             </div>
                           ) : (
@@ -339,7 +365,10 @@ function Leistungsauftrag() {
                                     <div key={idx}>{line}</div>
                                   ))
                                 ) : (
-                                  <div>{option.beschreibung} - {option.preis}</div>
+                                  <div>
+                                    {option.beschreibung}
+                                    {` [${MENGE_LABEL[option.mengeTyp]}]`} – {option.preis}
+                                  </div>
                                 )}
                               </div>
                             ))}
@@ -357,20 +386,111 @@ function Leistungsauftrag() {
                       />
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        value={row.stundenStueck}
-                        onChange={(e) => handleLeistungChange(row.id, 'stundenStueck', e.target.value)}
-                      />
+                      <div
+                        className="table-input table-input-static"
+                        title="Einheit wird automatisch gesetzt"
+                      >
+                        <span className="unit-icon">📏</span>
+                        {(() => {
+                          const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
+                          return selectedOption ? MENGE_LABEL[selectedOption.mengeTyp] : ''
+                        })()}
+                      </div>
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        value={row.m3m}
-                        onChange={(e) => handleLeistungChange(row.id, 'm3m', e.target.value)}
-                      />
+                      {(() => {
+                        const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
+                        const mengeTyp = selectedOption?.mengeTyp
+
+                        // Helper to decide, ob Stunden/Stück oder m3/m benutzt wird
+                        const value =
+                          mengeTyp === 'm3'
+                            ? row.m3m
+                            : row.stundenStueck
+
+                        const handleChange = (newValue: string) => {
+                          if (mengeTyp === 'm3') {
+                            handleLeistungChange(row.id, 'm3m', newValue)
+                          } else {
+                            handleLeistungChange(row.id, 'stundenStueck', newValue)
+                          }
+                        }
+
+                        const buildTimeOptions = (max: number) => {
+                          const options: string[] = ['']
+                          for (let v = 0.5; v <= max; v += 0.5) {
+                            // 0,5; 1; 1,5; ...
+                            const isHalf = v % 1 !== 0
+                            options.push(isHalf ? `${v}`.replace('.', ',') : `${v}`)
+                          }
+                          return options
+                        }
+
+                        if (mengeTyp === 'h' || mengeTyp === 'h_16') {
+                          const max = mengeTyp === 'h_16' ? 16 : 8
+                          const options = buildTimeOptions(max)
+                          return (
+                            <select
+                              className="table-input"
+                              value={value}
+                              onChange={(e) => handleChange(e.target.value)}
+                            >
+                              {options.map(opt => (
+                                <option key={opt} value={opt}>
+                                  {opt === '' ? 'Stunden wählen' : `${opt} h`}
+                                </option>
+                              ))}
+                            </select>
+                          )
+                        }
+
+                        if (mengeTyp === 'zuschlag') {
+                          const options = ['', '30%', '40%', '50%']
+                          return (
+                            <select
+                              className="table-input"
+                              value={value}
+                              onChange={(e) => handleChange(e.target.value)}
+                            >
+                              {options.map(opt => (
+                                <option key={opt} value={opt}>
+                                  {opt === '' ? 'Zuschlag wählen' : opt}
+                                </option>
+                              ))}
+                            </select>
+                          )
+                        }
+
+                        if (mengeTyp === 'stueck_10') {
+                          const options: string[] = ['']
+                          for (let i = 1; i <= 10; i++) {
+                            options.push(String(i))
+                          }
+                          return (
+                            <select
+                              className="table-input"
+                              value={value}
+                              onChange={(e) => handleChange(e.target.value)}
+                            >
+                              {options.map(opt => (
+                                <option key={opt} value={opt}>
+                                  {opt === '' ? 'Stück wählen' : `${opt} Stk.`}
+                                </option>
+                              ))}
+                            </select>
+                          )
+                        }
+
+                        // Standard-Fall: freie Eingabe (PSCH, m3, einfache Stück)
+                        return (
+                          <input
+                            type="text"
+                            className="table-input"
+                            value={value}
+                            onChange={(e) => handleChange(e.target.value)}
+                          />
+                        )
+                      })()}
                     </td>
                     <td>
                       <input

@@ -250,6 +250,23 @@
   font-size: 0.875rem;
 }
 
+.table-input-static {
+  background-color: #f5f5f5;
+  color: #666;
+  pointer-events: none;
+  cursor: help;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-weight: 500;
+}
+
+.unit-icon {
+  opacity: 0.6;
+  font-size: 0.875rem;
+}
+
 .table-input:focus {
   outline: none;
   border-color: #1976d2;
