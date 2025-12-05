@@ -62,6 +62,45 @@ function addImageToPDF(doc: jsPDF, imageData: string, x: number, y: number, widt
   }
 }
 
+// Helper function to get Einheit and Preis from Beschreibung
+function getLeistungInfo(beschreibung: string): { einheit: string; preis: string } {
+  const LEISTUNG_OPTIONEN = [
+    { beschreibung: 'Bereitschaftseinsatz - Geschäftszeit', preis: '25,00', mengeTyp: 'psch' },
+    { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00', mengeTyp: 'psch' },
+    { beschreibung: 'Einleitgebühren - AG', preis: '10,96', mengeTyp: 'm3' },
+    { beschreibung: 'Einleitgebühren - KKA', preis: '30,11', mengeTyp: 'm3' },
+    { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00', mengeTyp: 'h' },
+    { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00', mengeTyp: 'h' },
+    { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' },
+    { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' },
+    { beschreibung: 'Einsatz Kärcher-Spülgerät (ohne Arbeitslohn)', preis: '30,00', mengeTyp: 'h' },
+    { beschreibung: 'Einsatz Wurzelschneider bis DN 150', preis: '30,00', mengeTyp: 'h' },
+    { beschreibung: 'Elektrische Spirale', preis: '35,00', mengeTyp: 'h' },
+    { beschreibung: 'Stundenlohnarbeiten', preis: '58,00', mengeTyp: 'h_16' },
+    { beschreibung: 'Zuschlag:\nMo. - Fr. 18:00 - 06:00 Uhr - 30%\nFr. ab 18:00 Uhr - Sa. 18:00 Uhr - 40%\nSa. ab 18:00 Uhr - Mo. 06:00 Uhr - 50% (Sonntag + Feiertag)', preis: '30% / 40% / 50%', mengeTyp: 'zuschlag' },
+    { beschreibung: 'Einsatz FUNKE Rohrpflaster', preis: '35,00', mengeTyp: 'stueck' },
+    { beschreibung: 'Einsatz Rohrgranate 1000 ml', preis: '38,00', mengeTyp: 'stueck_10' }
+  ]
+  
+  const MENGE_LABEL: Record<string, string> = {
+    psch: 'PSCH',
+    m3: 'm³',
+    h: 'h',
+    h_16: 'h',
+    zuschlag: '%',
+    stueck: 'Stk.',
+    stueck_10: 'Stk.'
+  }
+  
+  const option = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === beschreibung)
+  if (!option) return { einheit: '', preis: '' }
+  
+  return {
+    einheit: MENGE_LABEL[option.mengeTyp] || '',
+    preis: option.preis
+  }
+}
+
 export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const doc = new jsPDF()
   let yPos = 20
@@ -79,6 +118,8 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   // Firmendaten (Kontaktinformationen)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
+  doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
+  yPos += 5
   doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
   yPos += 5
   doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
@@ -153,8 +194,9 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   yPos += 7
 
   if (data.leistungen && data.leistungen.length > 0) {
-    const tableHeaders = ['Beschreibung', 'Einheit/Netto', 'Std./Stk.', 'm³/m', 'Bemerkung']
-    const colWidths = [70, 25, 20, 20, 40]
+    const tableHeaders = ['Beschreibung / Netto €', 'Einheit', 'Mengenspalte', 'Bemerkung']
+    const colWidths = [70, 20, 30, 55]
+    const colAlignments = ['left', 'center', 'center', 'left']
     let xPos = 20
 
     // Table Header
@@ -163,31 +205,75 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     doc.setFillColor(245, 245, 245)
     doc.rect(xPos, yPos - 5, 175, 6, 'F')
     tableHeaders.forEach((header, i) => {
-      doc.text(header, xPos + 2, yPos)
+      const align = colAlignments[i] as 'left' | 'center' | 'right'
+      const headerX = align === 'center' ? xPos + colWidths[i] / 2 : xPos + 2
+      doc.text(header, headerX, yPos, { align })
       xPos += colWidths[i]
     })
     yPos += 7
 
     // Table Rows
     doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
     data.leistungen.forEach((row) => {
       if (yPos > 250) {
         doc.addPage()
         yPos = 20
       }
       xPos = 20
-      const rowData = [
-        row.beschreibung || '',
-        row.einheit || '',
-        row.stundenStueck || '',
-        row.m3m || '',
-        row.bemerkung || ''
-      ]
-      rowData.forEach((cell, i) => {
-        doc.text(cell.substring(0, 15), xPos + 2, yPos)
-        xPos += colWidths[i]
+      
+      const leistungInfo = getLeistungInfo(row.beschreibung)
+      const nettoPreis = row.einheit || leistungInfo.preis
+      const nettoText = nettoPreis && !nettoPreis.includes('%') ? `${nettoPreis} €` : nettoPreis
+      
+      // Beschreibung / Netto €
+      const beschreibungLines = row.beschreibung.includes('\n')
+        ? row.beschreibung.split('\n')
+        : [row.beschreibung]
+      
+      // Zeige alle Zeilen der Beschreibung (maximal 3 Zeilen)
+      beschreibungLines.slice(0, 3).forEach((line, idx) => {
+        doc.text(line.substring(0, 30), xPos + 2, yPos + (idx * 4))
       })
-      yPos += 6
+      
+      // Netto-Preis unter der Beschreibung
+      const nettoY = yPos + (beschreibungLines.length * 4)
+      if (nettoText) {
+        doc.text(nettoText, xPos + 2, nettoY)
+      }
+      xPos += colWidths[0]
+      
+      // Einheit (zentriert) - vertikal zentriert bei mehrzeiligen Beschreibungen
+      const einheit = leistungInfo.einheit
+      const einheitY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
+      doc.text(einheit, xPos + colWidths[1] / 2, einheitY, { align: 'center' })
+      xPos += colWidths[1]
+      
+      // Mengenspalte (zentriert)
+      // Bestimme die richtige Menge basierend auf der Einheit
+      let menge = ''
+      if (einheit === 'm³') {
+        menge = row.m3m || ''
+      } else {
+        menge = row.stundenStueck || ''
+      }
+      // Für glatte Stunden: ,0 hinzufügen (z.B. 1 -> 1,0)
+      if (menge && einheit === 'h' && !menge.includes(',') && !isNaN(parseFloat(menge.replace(',', '.')))) {
+        menge = `${menge},0`
+      }
+      const mengeY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
+      doc.text(menge, xPos + colWidths[2] / 2, mengeY, { align: 'center' })
+      xPos += colWidths[2]
+      
+      // Bemerkung
+      const bemerkungY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
+      doc.text((row.bemerkung || '').substring(0, 25), xPos + 2, bemerkungY)
+      
+      // Dynamische Zeilenhöhe basierend auf Beschreibung
+      const beschreibungHeight = beschreibungLines.length > 1 
+        ? Math.max(beschreibungLines.length * 4 + 4, 8)
+        : 8
+      yPos += beschreibungHeight
     })
   }
 
@@ -271,6 +357,8 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   // Firmendaten (Kontaktinformationen)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
+  doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
+  yPos += 5
   doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
   yPos += 5
   doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
