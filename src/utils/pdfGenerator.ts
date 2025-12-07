@@ -181,12 +181,6 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text(data.telefonNr || '-', 60, yPos)
   yPos += 7
 
-  doc.setFont('helvetica', 'bold')
-  doc.text('Blockschrift:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.blockschrift || '-', 60, yPos)
-  yPos += 10
-
   // Leistungen Table
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
@@ -195,7 +189,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
 
   if (data.leistungen && data.leistungen.length > 0) {
     const tableHeaders = ['Beschreibung / Netto €', 'Einheit', 'Mengenspalte', 'Bemerkung']
-    const colWidths = [70, 20, 30, 55]
+    const colWidths = [75, 20, 30, 50]
     const colAlignments = ['left', 'center', 'center', 'left']
     let xPos = 20
 
@@ -224,58 +218,98 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
       
       const leistungInfo = getLeistungInfo(row.beschreibung)
       const nettoPreis = row.einheit || leistungInfo.preis
-      const nettoText = nettoPreis && !nettoPreis.includes('%') ? `${nettoPreis} €` : nettoPreis
       
-      // Beschreibung / Netto €
+      // Beschreibung / Netto € Spalte
       const beschreibungLines = row.beschreibung.includes('\n')
         ? row.beschreibung.split('\n')
         : [row.beschreibung]
       
-      // Zeige alle Zeilen der Beschreibung (maximal 3 Zeilen)
-      beschreibungLines.slice(0, 3).forEach((line, idx) => {
-        doc.text(line.substring(0, 30), xPos + 2, yPos + (idx * 4))
+      // Für Zuschlag: Kleinere Schrift, damit alles passt, aber vollständig anzeigen
+      const isZuschlag = row.beschreibung.startsWith('Zuschlag')
+      const beschreibungFontSize = isZuschlag ? 7.5 : 9
+      doc.setFontSize(beschreibungFontSize)
+      
+      // Zeige alle Zeilen der Beschreibung
+      let currentY = yPos
+      beschreibungLines.forEach((line, idx) => {
+        const maxWidth = colWidths[0] - 4
+        const wrappedLines = doc.splitTextToSize(line, maxWidth)
+        wrappedLines.forEach((textLine: string) => {
+          doc.text(textLine, xPos + 2, currentY)
+          currentY += 3.5
+        })
       })
       
-      // Netto-Preis unter der Beschreibung
-      const nettoY = yPos + (beschreibungLines.length * 4)
+      // Netto-Preis mit Einheit direkt unter der Beschreibung
+      let nettoText = ''
+      if (nettoPreis && !nettoPreis.includes('%')) {
+        nettoText = `${nettoPreis} € ${leistungInfo.einheit}`
+      } else if (nettoPreis) {
+        nettoText = nettoPreis
+      }
+      
+      const beschreibungHeight = currentY - yPos
+      const nettoY = currentY + 2
+      
       if (nettoText) {
+        doc.setFontSize(9)
         doc.text(nettoText, xPos + 2, nettoY)
       }
+      
+      // Zurücksetzen der Schriftgröße
+      doc.setFontSize(9)
+      
+      // Zeilenhöhe für diese Zeile berechnen (inkl. Preis)
+      const rowHeight = Math.max(beschreibungHeight + 6, 12)
+      const centerY = yPos + rowHeight / 2
+      
       xPos += colWidths[0]
       
-      // Einheit (zentriert) - vertikal zentriert bei mehrzeiligen Beschreibungen
+      // Einheit (zentriert, vertikal zentriert)
       const einheit = leistungInfo.einheit
-      const einheitY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
-      doc.text(einheit, xPos + colWidths[1] / 2, einheitY, { align: 'center' })
+      doc.text(einheit, xPos + colWidths[1] / 2, centerY, { align: 'center' })
       xPos += colWidths[1]
       
-      // Mengenspalte (zentriert)
-      // Bestimme die richtige Menge basierend auf der Einheit
+      // Mengenspalte (zentriert, vertikal zentriert)
       let menge = ''
       if (einheit === 'm³') {
         menge = row.m3m || ''
+      } else if (einheit === '%') {
+        // Bei Zuschlag: Prozentwert aus stundenStueck nehmen
+        menge = row.stundenStueck || ''
       } else {
         menge = row.stundenStueck || ''
       }
+      
       // Für glatte Stunden: ,0 hinzufügen (z.B. 1 -> 1,0)
       if (menge && einheit === 'h' && !menge.includes(',') && !isNaN(parseFloat(menge.replace(',', '.')))) {
         menge = `${menge},0`
       }
-      const mengeY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
-      doc.text(menge, xPos + colWidths[2] / 2, mengeY, { align: 'center' })
+      
+      doc.text(menge, xPos + colWidths[2] / 2, centerY, { align: 'center' })
       xPos += colWidths[2]
       
-      // Bemerkung
-      const bemerkungY = yPos + (beschreibungLines.length > 1 ? beschreibungLines.length * 2 : 0)
-      doc.text((row.bemerkung || '').substring(0, 25), xPos + 2, bemerkungY)
+      // Bemerkung (vertikal zentriert)
+      doc.text((row.bemerkung || '').substring(0, 20), xPos + 2, centerY)
       
-      // Dynamische Zeilenhöhe basierend auf Beschreibung
-      const beschreibungHeight = beschreibungLines.length > 1 
-        ? Math.max(beschreibungLines.length * 4 + 4, 8)
-        : 8
-      yPos += beschreibungHeight
+      yPos += rowHeight
     })
   }
+  
+  // Blockschrift rechts ausrichten unter der Tabelle
+  if (yPos > 250) {
+    doc.addPage()
+    yPos = 20
+  } else {
+    yPos += 5
+  }
+  
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  // Blockschrift rechts ausrichten, ausgerichtet mit der rechten Spalte
+  const blockschriftText = data.blockschrift || '-'
+  doc.text(blockschriftText, 175, yPos, { align: 'right' })
+  yPos += 10
 
   // Sonstiges
   if (data.sonstiges) {
