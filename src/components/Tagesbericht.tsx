@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import SignaturePad from './SignaturePad'
 import { generateTagesberichtPDF } from '../utils/pdfGenerator'
 import './Tagesbericht.css'
@@ -96,9 +96,58 @@ function Tagesbericht() {
 
   const [showKundeSignatur, setShowKundeSignatur] = useState(false)
   const [showMitarbeiterSignatur, setShowMitarbeiterSignatur] = useState(false)
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
   const handleInputChange = (field: keyof TagesberichtData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Datum formatieren: von YYYY-MM-DD zu TT.MM.JJJJ
+  const formatDateForDisplay = (dateString: string): string => {
+    if (!dateString) return ''
+    // Wenn bereits im Format TT.MM.JJJJ, zurückgeben
+    if (dateString.includes('.')) return dateString
+    
+    // Wenn im Format YYYY-MM-DD, konvertieren
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return dateString
+    
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}.${month}.${year}`
+  }
+
+  // Datum parsen: von TT.MM.JJJJ zu YYYY-MM-DD
+  const parseDateForInput = (dateString: string): string => {
+    if (!dateString) return ''
+    // Wenn bereits im Format YYYY-MM-DD, zurückgeben
+    if (dateString.includes('-') && dateString.length === 10) return dateString
+    
+    // Wenn im Format TT.MM.JJJJ, konvertieren
+    const parts = dateString.split('.')
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0')
+      const month = parts[1].padStart(2, '0')
+      const year = parts[2]
+      return `${year}-${month}-${day}`
+    }
+    
+    return dateString
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = e.target.value
+    if (dateValue) {
+      const formattedDate = formatDateForDisplay(dateValue)
+      handleInputChange('datum', formattedDate)
+    } else {
+      handleInputChange('datum', '')
+    }
+  }
+
+  const handleDateIconClick = () => {
+    dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()
   }
 
   const handleArbeitsbeschreibungChange = (id: string, field: keyof ArbeitsbeschreibungRow, value: string) => {
@@ -188,7 +237,22 @@ function Tagesbericht() {
                 value={formData.datum}
                 onChange={(e) => handleInputChange('datum', e.target.value)}
               />
-              <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <input
+                ref={dateInputRef}
+                type="date"
+                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+                value={parseDateForInput(formData.datum)}
+                onChange={handleDateChange}
+              />
+              <svg 
+                className="input-icon input-icon-clickable" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                onClick={handleDateIconClick}
+              >
                 <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
                 <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>

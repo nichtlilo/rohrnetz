@@ -91,6 +91,7 @@ function Leistungsauftrag() {
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [dropdownPositions, setDropdownPositions] = useState<Record<string, { top: number; left: number; width: number }>>({})
+  const dateInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,19 +143,62 @@ function Leistungsauftrag() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  // Datum formatieren: von YYYY-MM-DD zu TT.MM.JJJJ
+  const formatDateForDisplay = (dateString: string): string => {
+    if (!dateString) return ''
+    // Wenn bereits im Format TT.MM.JJJJ, zurückgeben
+    if (dateString.includes('.')) return dateString
+    
+    // Wenn im Format YYYY-MM-DD, konvertieren
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return dateString
+    
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}.${month}.${year}`
+  }
+
+  // Datum parsen: von TT.MM.JJJJ zu YYYY-MM-DD
+  const parseDateForInput = (dateString: string): string => {
+    if (!dateString) return ''
+    // Wenn bereits im Format YYYY-MM-DD, zurückgeben
+    if (dateString.includes('-') && dateString.length === 10) return dateString
+    
+    // Wenn im Format TT.MM.JJJJ, konvertieren
+    const parts = dateString.split('.')
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0')
+      const month = parts[1].padStart(2, '0')
+      const year = parts[2]
+      return `${year}-${month}-${day}`
+    }
+    
+    return dateString
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = e.target.value
+    if (dateValue) {
+      const formattedDate = formatDateForDisplay(dateValue)
+      handleInputChange('datum', formattedDate)
+    } else {
+      handleInputChange('datum', '')
+    }
+  }
+
+  const handleDateIconClick = () => {
+    dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()
+  }
+
   const handleLeistungChange = (id: string, field: keyof LeistungRow, value: string) => {
     setFormData(prev => {
       const updatedLeistungen = prev.leistungen.map(row => {
         if (row.id === id) {
           const updatedRow = { ...row, [field]: value }
           
-          // Wenn Beschreibung geändert wird, automatisch den Preis eintragen
+          // Wenn Beschreibung geändert wird, Menge zurücksetzen
           if (field === 'beschreibung') {
-            const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === value)
-            if (selectedOption) {
-              updatedRow.einheit = selectedOption.preis
-            }
-            // Menge zurücksetzen, wenn Position gewechselt wird
             updatedRow.stundenStueck = ''
             updatedRow.m3m = ''
           }
@@ -211,69 +255,73 @@ function Leistungsauftrag() {
       <div className="form-card">
         <h2 className="form-section-title">Leistungsauftrag</h2>
         
-        <div className="form-group">
-          <label className="form-label">
-            Einsatzort <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Einsatzort eingeben"
-            value={formData.einsatzort}
-            onChange={(e) => handleInputChange('einsatzort', e.target.value)}
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">
+              Einsatzort <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Einsatzort eingeben"
+              value={formData.einsatzort}
+              onChange={(e) => handleInputChange('einsatzort', e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Art der Arbeit <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Beschreibung der Arbeit"
+              value={formData.artDerArbeit}
+              onChange={(e) => handleInputChange('artDerArbeit', e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">
-            RG - Empfänger <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Rechnungsempfänger"
-            value={formData.rgEmpfaenger}
-            onChange={(e) => handleInputChange('rgEmpfaenger', e.target.value)}
-          />
-        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">
+              RG - Empfänger <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Rechnungsempfänger"
+              value={formData.rgEmpfaenger}
+              onChange={(e) => handleInputChange('rgEmpfaenger', e.target.value)}
+            />
+          </div>
 
-        <div className="form-group">
-          <label className="form-label">E-Mail</label>
-          <input
-            type="email"
-            className="form-input"
-            placeholder="E-Mail-Adresse des Kunden"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">
-            Art der Arbeit <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Beschreibung der Arbeit"
-            value={formData.artDerArbeit}
-            onChange={(e) => handleInputChange('artDerArbeit', e.target.value)}
-          />
+          <div className="form-group">
+            <label className="form-label">E-Mail</label>
+            <input
+              type="email"
+              className="form-input"
+              placeholder="E-Mail-Adresse des Kunden"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="form-section">
           <div className="form-section-header">
-            <h3 className="form-section-title">Leistungen</h3>
+            <h3 className="form-section-title">Leistung</h3>
           </div>
 
           <div className="table-wrapper">
             <table className="leistungen-table">
               <thead>
                 <tr>
-                  <th className="beschreibung-col">Beschreibung / Netto</th>
-                  <th style={{ display: 'none' }}></th>
+                  <th className="beschreibung-col">Beschreibung</th>
+                  <th className="text-center">Netto €</th>
+                  <th className="text-center">Menge</th>
                   <th className="text-center">Einheit</th>
-                  <th className="text-center">Mengenspalte</th>
                   <th>Bemerkung</th>
                   <th></th>
                 </tr>
@@ -308,16 +356,7 @@ function Leistungsauftrag() {
                                   <div key={idx}>{line}</div>
                                 ))
                               ) : (
-                                (() => {
-                                  const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
-                                  const mengeLabel = selectedOption ? MENGE_LABEL[selectedOption.mengeTyp] : ''
-                                  return (
-                                    <div>
-                                      {row.beschreibung}
-                                      {mengeLabel && ` [${mengeLabel}]`} – {row.einheit}
-                                    </div>
-                                  )
-                                })()
+                                <div>{row.beschreibung}</div>
                               )}
                             </div>
                           ) : (
@@ -372,24 +411,14 @@ function Leistungsauftrag() {
                         )}
                       </div>
                     </td>
-                    <td style={{ display: 'none' }}>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="€"
-                        value={row.einheit}
-                        onChange={(e) => handleLeistungChange(row.id, 'einheit', e.target.value)}
-                      />
-                    </td>
                     <td className="text-center">
                       <div
                         className="table-input table-input-static"
-                        title="Einheit wird automatisch gesetzt"
+                        title="Preis wird automatisch aus der Beschreibung gesetzt"
                       >
-                        <span className="unit-icon">📏</span>
                         {(() => {
                           const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
-                          return selectedOption ? MENGE_LABEL[selectedOption.mengeTyp] : ''
+                          return selectedOption ? selectedOption.preis : (row.einheit || '-')
                         })()}
                       </div>
                     </td>
@@ -491,6 +520,18 @@ function Leistungsauftrag() {
                         )
                       })()}
                     </td>
+                    <td className="text-center">
+                      <div
+                        className="table-input table-input-static"
+                        title="Einheit wird automatisch gesetzt"
+                      >
+                        <span className="unit-icon">📏</span>
+                        {(() => {
+                          const selectedOption = LEISTUNG_OPTIONEN.find(opt => opt.beschreibung === row.beschreibung)
+                          return selectedOption ? MENGE_LABEL[selectedOption.mengeTyp] : ''
+                        })()}
+                      </div>
+                    </td>
                     <td>
                       <input
                         type="text"
@@ -536,7 +577,22 @@ function Leistungsauftrag() {
                 value={formData.datum}
                 onChange={(e) => handleInputChange('datum', e.target.value)}
               />
-              <svg className="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <input
+                ref={dateInputRef}
+                type="date"
+                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+                value={parseDateForInput(formData.datum)}
+                onChange={handleDateChange}
+              />
+              <svg 
+                className="input-icon input-icon-clickable" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                onClick={handleDateIconClick}
+              >
                 <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
                 <path d="M16 2V6M8 2V6M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>

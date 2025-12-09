@@ -138,139 +138,149 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information
-  doc.setFont('helvetica', 'bold')
-  doc.text('Einsatzort:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.einsatzort || '-', 60, yPos)
-  yPos += 7
+  // Basic Information - 2 Spalten
+  const leftColX = 20
+  const rightColX = 105
+  const labelWidth = 50
+  const valueStartLeft = leftColX + labelWidth
+  const valueStartRight = rightColX + labelWidth
+  let currentRowY = yPos
 
+  // Zeile 1: Einsatzort | Art der Arbeit
   doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', 20, yPos)
+  doc.text('Einsatzort:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.artDerArbeit || '-', 60, yPos)
-  yPos += 7
-
+  doc.text(data.einsatzort || '-', valueStartLeft, currentRowY)
+  
   doc.setFont('helvetica', 'bold')
-  doc.text('RG - Empfänger:', 20, yPos)
+  doc.text('Art der Arbeit:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.rgEmpfaenger || '-', 60, yPos)
-  yPos += 7
+  doc.text(data.artDerArbeit || '-', valueStartRight, currentRowY)
+  currentRowY += 6
 
+  // Zeile 2: RG - Empfänger | E-Mail
   doc.setFont('helvetica', 'bold')
-  doc.text('E-Mail:', 20, yPos)
+  doc.text('RG - Empfänger:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.email || '-', 60, yPos)
-  yPos += 7
-
+  doc.text(data.rgEmpfaenger || '-', valueStartLeft, currentRowY)
+  
   doc.setFont('helvetica', 'bold')
-  doc.text('Datum:', 20, yPos)
+  doc.text('E-Mail:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.datum || '-', 60, yPos)
-  yPos += 7
+  doc.text(data.email || '-', valueStartRight, currentRowY)
+  currentRowY += 6
 
+  // Zeile 3: Datum | Monteur
   doc.setFont('helvetica', 'bold')
-  doc.text('Monteur:', 20, yPos)
+  doc.text('Datum:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.monteur || '-', 60, yPos)
-  yPos += 7
-
+  doc.text(data.datum || '-', valueStartLeft, currentRowY)
+  
   doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', 20, yPos)
+  doc.text('Monteur:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.telefonNr || '-', 60, yPos)
-  yPos += 7
+  doc.text(data.monteur || '-', valueStartRight, currentRowY)
+  currentRowY += 6
 
-  // Leistungen Table
+  // Zeile 4: Telefon Nr. | Blockschrift
+  doc.setFont('helvetica', 'bold')
+  doc.text('Telefon Nr.:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.telefonNr || '-', valueStartLeft, currentRowY)
+  
+  doc.setFont('helvetica', 'bold')
+  doc.text('Blockschrift:', rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.blockschrift || '-', valueStartRight, currentRowY)
+  currentRowY += 6
+
+  yPos = currentRowY + 3
+
+  // Leistung Table
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
-  doc.text('Leistungen', 20, yPos)
-  yPos += 7
+  doc.text('Leistung', 20, yPos)
+  yPos += 8
 
   if (data.leistungen && data.leistungen.length > 0) {
-    const tableHeaders = ['Beschreibung / Netto €', 'Einheit', 'Mengenspalte', 'Bemerkung']
-    const colWidths = [75, 20, 30, 50]
-    const colAlignments = ['left', 'center', 'center', 'left']
+    const tableHeaders = ['Beschreibung', 'Netto €', 'Menge', 'Einheit', 'Bemerkung']
+    const colWidths = [55, 22, 22, 18, 35]
+    const colAlignments = ['left', 'center', 'center', 'center', 'left']
     let xPos = 20
 
     // Table Header
-    doc.setFontSize(9)
+    doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
     doc.setFillColor(245, 245, 245)
-    doc.rect(xPos, yPos - 5, 175, 6, 'F')
+    const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0)
+    doc.rect(xPos, yPos - 4, totalTableWidth, 5, 'F')
     tableHeaders.forEach((header, i) => {
       const align = colAlignments[i] as 'left' | 'center' | 'right'
       const headerX = align === 'center' ? xPos + colWidths[i] / 2 : xPos + 2
       doc.text(header, headerX, yPos, { align })
       xPos += colWidths[i]
     })
-    yPos += 7
+    yPos += 5
 
     // Table Rows
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
+    doc.setFontSize(8)
     data.leistungen.forEach((row) => {
-      if (yPos > 250) {
+      // Prüfe ob noch Platz für Unterschriften (mindestens 50mm Abstand)
+      if (yPos > 200) {
         doc.addPage()
         yPos = 20
       }
       xPos = 20
       
       const leistungInfo = getLeistungInfo(row.beschreibung)
-      const nettoPreis = row.einheit || leistungInfo.preis
+      const nettoPreis = leistungInfo.preis
       
-      // Beschreibung / Netto € Spalte
+      // Beschreibung Spalte - zuerst Höhe berechnen
       const beschreibungLines = row.beschreibung.includes('\n')
         ? row.beschreibung.split('\n')
         : [row.beschreibung]
       
       // Für Zuschlag: Kleinere Schrift, damit alles passt, aber vollständig anzeigen
       const isZuschlag = row.beschreibung.startsWith('Zuschlag')
-      const beschreibungFontSize = isZuschlag ? 7.5 : 9
+      const beschreibungFontSize = isZuschlag ? 7 : 8
       doc.setFontSize(beschreibungFontSize)
       
-      // Zeige alle Zeilen der Beschreibung
-      let currentY = yPos
-      beschreibungLines.forEach((line, idx) => {
+      // Berechne die Höhe der Beschreibung zuerst
+      let beschreibungHeight = 0
+      const allWrappedLines: string[] = []
+      beschreibungLines.forEach((line) => {
         const maxWidth = colWidths[0] - 4
         const wrappedLines = doc.splitTextToSize(line, maxWidth)
-        wrappedLines.forEach((textLine: string) => {
-          doc.text(textLine, xPos + 2, currentY)
-          currentY += 3.5
-        })
+        allWrappedLines.push(...wrappedLines)
+        beschreibungHeight += wrappedLines.length * 3
       })
       
-      // Netto-Preis mit Einheit direkt unter der Beschreibung
-      let nettoText = ''
-      if (nettoPreis && !nettoPreis.includes('%')) {
-        nettoText = `${nettoPreis} € ${leistungInfo.einheit}`
-      } else if (nettoPreis) {
-        nettoText = nettoPreis
-      }
+      // Bestimme die Zeilenhöhe (mindestens 8mm)
+      const rowHeight = Math.max(beschreibungHeight + 1, 8)
+      const centerY = yPos + rowHeight / 2
       
-      const beschreibungHeight = currentY - yPos
-      const nettoY = currentY + 2
-      
-      if (nettoText) {
-        doc.setFontSize(9)
-        doc.text(nettoText, xPos + 2, nettoY)
-      }
+      // Zeige alle Zeilen der Beschreibung, vertikal zentriert
+      // Die erste Zeile beginnt bei centerY - (beschreibungHeight / 2) + 2.5
+      // 2.5 ist die Hälfte der Zeilenhöhe (3mm / 2), um die Baseline zu berücksichtigen
+      let currentY = centerY - (beschreibungHeight / 2) + 2.5
+      allWrappedLines.forEach((textLine: string) => {
+        doc.text(textLine, xPos + 2, currentY)
+        currentY += 3
+      })
       
       // Zurücksetzen der Schriftgröße
-      doc.setFontSize(9)
-      
-      // Zeilenhöhe für diese Zeile berechnen (inkl. Preis)
-      const rowHeight = Math.max(beschreibungHeight + 6, 12)
-      const centerY = yPos + rowHeight / 2
+      doc.setFontSize(8)
       
       xPos += colWidths[0]
       
-      // Einheit (zentriert, vertikal zentriert)
-      const einheit = leistungInfo.einheit
-      doc.text(einheit, xPos + colWidths[1] / 2, centerY, { align: 'center' })
+      // Netto € Spalte (zentriert, vertikal zentriert)
+      const nettoText = nettoPreis || '-'
+      doc.text(nettoText, xPos + colWidths[1] / 2, centerY, { align: 'center' })
       xPos += colWidths[1]
       
-      // Mengenspalte (zentriert, vertikal zentriert)
+      // Menge Spalte (zentriert, vertikal zentriert)
+      const einheit = leistungInfo.einheit
       let menge = ''
       if (einheit === 'm³') {
         menge = row.m3m || ''
@@ -286,55 +296,47 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
         menge = `${menge},0`
       }
       
-      doc.text(menge, xPos + colWidths[2] / 2, centerY, { align: 'center' })
+      doc.text(menge || '-', xPos + colWidths[2] / 2, centerY, { align: 'center' })
       xPos += colWidths[2]
       
+      // Einheit Spalte (zentriert, vertikal zentriert)
+      doc.text(einheit || '-', xPos + colWidths[3] / 2, centerY, { align: 'center' })
+      xPos += colWidths[3]
+      
       // Bemerkung (vertikal zentriert)
-      doc.text((row.bemerkung || '').substring(0, 20), xPos + 2, centerY)
+      doc.text((row.bemerkung || '').substring(0, 18), xPos + 2, centerY)
       
       yPos += rowHeight
     })
   }
   
-  // Blockschrift rechts ausrichten unter der Tabelle
-  if (yPos > 250) {
-    doc.addPage()
-    yPos = 20
-  } else {
-    yPos += 5
-  }
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  // Blockschrift rechts ausrichten, ausgerichtet mit der rechten Spalte
-  const blockschriftText = data.blockschrift || '-'
-  doc.text(blockschriftText, 175, yPos, { align: 'right' })
-  yPos += 10
+  // Blockschrift wurde bereits oben angezeigt, daher hier überspringen
+  yPos += 3
 
   // Sonstiges
   if (data.sonstiges) {
-    if (yPos > 230) {
+    if (yPos > 200) {
       doc.addPage()
       yPos = 20
     }
-    yPos += 5
+    yPos += 3
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
+    doc.setFontSize(11)
     doc.text('Sonstiges', 20, yPos)
-    yPos += 7
+    yPos += 5
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
+    doc.setFontSize(9)
     const sonstigesLines = doc.splitTextToSize(data.sonstiges, 170)
     doc.text(sonstigesLines, 20, yPos)
-    yPos += sonstigesLines.length * 5 + 5
+    yPos += sonstigesLines.length * 4 + 3
   }
 
-  // Signatures
-  if (yPos > 180) {
+  // Signatures - sicherstellen, dass genug Platz ist
+  if (yPos > 200) {
     doc.addPage()
     yPos = 20
   } else {
-    yPos += 10
+    yPos += 2
   }
 
   const signatureY = Math.max(yPos, 160)
