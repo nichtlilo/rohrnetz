@@ -127,11 +127,18 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
   yPos += 8
 
-  // Title
+  // Title mit Datum daneben
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(25, 118, 210)
   doc.text('Leistungsauftrag', 20, yPos)
+  
+  // Datum rechts neben dem Titel
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(0, 0, 0)
+  doc.text(`Datum: ${data.datum || '-'}`, 170, yPos, { align: 'right' })
+  
   yPos += 10
 
   doc.setFontSize(10)
@@ -168,14 +175,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text(artDerArbeitText, valueStartLeft, currentRowY)
   currentRowY += 5
 
-  // Zeile 4: Datum
-  doc.setFont('helvetica', 'bold')
-  doc.text('Datum:', leftColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.datum || '-', valueStartLeft, currentRowY)
-  currentRowY += 5
-
-  // Zeile 5: E-Mail | Telefon Nr. (zusammen in einer Zeile)
+  // Zeile 4: E-Mail | Telefon Nr. (zusammen in einer Zeile)
   const rightColX = 105
   const valueStartRight = rightColX + 40
   doc.setFont('helvetica', 'bold')
