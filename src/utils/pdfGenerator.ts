@@ -138,43 +138,51 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information - 2 Spalten
+  // Basic Information - einzeilig für Einsatzort, RG-Empfänger, Art der Arbeit
   const leftColX = 20
-  const rightColX = 105
   const labelWidth = 40
   const valueStartLeft = leftColX + labelWidth
-  const valueStartRight = rightColX + labelWidth
   let currentRowY = yPos
 
-  // Zeile 1: Einsatzort | Art der Arbeit
+  // Zeile 1: Einsatzort (einzeilig)
   doc.setFont('helvetica', 'bold')
   doc.text('Einsatzort:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.einsatzort || '-', valueStartLeft, currentRowY)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.artDerArbeit || '-', valueStartRight, currentRowY)
+  const einsatzortText = (data.einsatzort || '-').substring(0, 50) // Begrenzen auf eine Zeile
+  doc.text(einsatzortText, valueStartLeft, currentRowY)
   currentRowY += 5
 
-  // Zeile 2: RG - Empfänger | E-Mail
+  // Zeile 2: RG - Empfänger (einzeilig)
   doc.setFont('helvetica', 'bold')
   doc.text('RG - Empfänger:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.rgEmpfaenger || '-', valueStartLeft, currentRowY)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('E-Mail:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.email || '-', valueStartRight, currentRowY)
+  const rgEmpfaengerText = (data.rgEmpfaenger || '-').substring(0, 50) // Begrenzen auf eine Zeile
+  doc.text(rgEmpfaengerText, valueStartLeft, currentRowY)
   currentRowY += 5
 
-  // Zeile 3: Datum | Telefon Nr.
+  // Zeile 3: Art der Arbeit (einzeilig)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Art der Arbeit:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  const artDerArbeitText = (data.artDerArbeit || '-').substring(0, 50) // Begrenzen auf eine Zeile
+  doc.text(artDerArbeitText, valueStartLeft, currentRowY)
+  currentRowY += 5
+
+  // Zeile 4: Datum
   doc.setFont('helvetica', 'bold')
   doc.text('Datum:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text(data.datum || '-', valueStartLeft, currentRowY)
+  currentRowY += 5
+
+  // Zeile 5: E-Mail | Telefon Nr. (zusammen in einer Zeile)
+  const rightColX = 105
+  const valueStartRight = rightColX + 40
+  doc.setFont('helvetica', 'bold')
+  doc.text('E-Mail:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  const emailText = (data.email || '-').substring(0, 30)
+  doc.text(emailText, valueStartLeft, currentRowY)
   
   doc.setFont('helvetica', 'bold')
   doc.text('Telefon Nr.:', rightColX, currentRowY)
@@ -213,9 +221,11 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     // Table Rows
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
+    // Unterschriften-Bereich benötigt ca. 50mm am Ende
+    const maxYForTable = 240 // Maximaler Y-Wert bevor neue Seite nötig ist
     data.leistungen.forEach((row) => {
-      // Prüfe ob noch Platz für Unterschriften (mindestens 50mm Abstand)
-      if (yPos > 200) {
+      // Prüfe ob noch Platz für Unterschriften
+      if (yPos > maxYForTable) {
         doc.addPage()
         yPos = 20
       }
@@ -302,11 +312,13 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
 
   yPos += 3
 
-  // Sonstiges links
+  // Sonstiges links - sicherstellen, dass es nicht mit Unterschriften kollidiert
   const sonstigesStartY = yPos
   let sonstigesEndY = yPos
+  const signatureAreaStart = 240 // Unterschriften beginnen ab hier
   if (data.sonstiges) {
-    if (yPos > 200) {
+    // Wenn zu nah an Unterschriften, auf neue Seite
+    if (yPos > signatureAreaStart - 20) {
       doc.addPage()
       yPos = 20
       sonstigesStartY = yPos
@@ -319,41 +331,49 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     const sonstigesLines = doc.splitTextToSize(data.sonstiges, 80)
-    doc.text(sonstigesLines, 20, sonstigesEndY)
-    sonstigesEndY += sonstigesLines.length * 4 + 3
+    // Begrenze Sonstiges, damit es nicht in Unterschriften-Bereich geht
+    const maxSonstigesLines = Math.floor((signatureAreaStart - sonstigesEndY - 10) / 4)
+    const limitedLines = sonstigesLines.slice(0, maxSonstigesLines)
+    doc.text(limitedLines, 20, sonstigesEndY)
+    sonstigesEndY += limitedLines.length * 4 + 3
   }
 
   // yPos auf das Ende von Sonstiges setzen
   yPos = sonstigesEndY
 
-  // Signatures - sicherstellen, dass genug Platz ist
-  if (yPos > 200) {
-    doc.addPage()
-    yPos = 20
-  } else {
-    yPos += 2
+  // Signatures - immer am Ende der Seite fixieren (ohne neue Seite)
+  // Berechne benötigten Platz für Unterschriften-Bereich (ca. 50mm)
+  const signatureAreaHeight = 50
+  const pageHeight = 297 // A4 Höhe in mm
+  const bottomMargin = 10
+  
+  // Wenn nicht genug Platz, dann auf dieser Seite nach oben verschieben
+  let signatureY = pageHeight - bottomMargin - signatureAreaHeight
+  
+  // Wenn der Inhalt zu weit nach unten geht, Unterschriften höher setzen
+  if (yPos > signatureY - 10) {
+    signatureY = Math.max(yPos + 10, pageHeight - bottomMargin - signatureAreaHeight)
   }
-
-  const signatureY = Math.max(yPos, 160)
+  
   const signatureWidth = 70
   const signatureHeight = 30
 
-  // Monteur (links, über Kunden-Unterschrift) und Blockschrift (rechts, über Mitarbeiter-Unterschrift) auf gleicher Höhe
+  // Blockschrift (links, über Kunden-Unterschrift) und Monteur (rechts, über Mitarbeiter-Unterschrift) auf gleicher Höhe
   const monteurBlockschriftY = signatureY - 8
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  const monteurLabelWidth = doc.getTextWidth('Monteur:')
-  doc.text('Monteur:', 20, monteurBlockschriftY)
+  const blockschriftLabelWidth = doc.getTextWidth('Blockschrift:')
+  doc.text('Blockschrift:', 20, monteurBlockschriftY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.monteur || '-', 20 + monteurLabelWidth + 2, monteurBlockschriftY)
+  doc.text(data.blockschrift || '-', 20 + blockschriftLabelWidth + 2, monteurBlockschriftY)
   
-  // Blockschrift rechts auf gleicher Höhe wie Monteur
+  // Monteur rechts auf gleicher Höhe wie Blockschrift
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  const blockschriftLabelWidth = doc.getTextWidth('Blockschrift:')
-  doc.text('Blockschrift:', 110, monteurBlockschriftY)
+  const monteurLabelWidth = doc.getTextWidth('Monteur:')
+  doc.text('Monteur:', 110, monteurBlockschriftY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.blockschrift || '-', 110 + blockschriftLabelWidth + 2, monteurBlockschriftY)
+  doc.text(data.monteur || '-', 110 + monteurLabelWidth + 2, monteurBlockschriftY)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
