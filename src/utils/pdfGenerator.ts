@@ -141,7 +141,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   // Basic Information - 2 Spalten
   const leftColX = 20
   const rightColX = 105
-  const labelWidth = 50
+  const labelWidth = 40
   const valueStartLeft = leftColX + labelWidth
   const valueStartRight = rightColX + labelWidth
   let currentRowY = yPos
@@ -156,7 +156,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text('Art der Arbeit:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text(data.artDerArbeit || '-', valueStartRight, currentRowY)
-  currentRowY += 6
+  currentRowY += 5
 
   // Zeile 2: RG - Empfänger | E-Mail
   doc.setFont('helvetica', 'bold')
@@ -168,33 +168,21 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text('E-Mail:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text(data.email || '-', valueStartRight, currentRowY)
-  currentRowY += 6
+  currentRowY += 5
 
-  // Zeile 3: Datum | Monteur
+  // Zeile 3: Datum | Telefon Nr.
   doc.setFont('helvetica', 'bold')
   doc.text('Datum:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text(data.datum || '-', valueStartLeft, currentRowY)
   
   doc.setFont('helvetica', 'bold')
-  doc.text('Monteur:', rightColX, currentRowY)
+  doc.text('Telefon Nr.:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.monteur || '-', valueStartRight, currentRowY)
-  currentRowY += 6
+  doc.text(data.telefonNr || '-', valueStartRight, currentRowY)
+  currentRowY += 5
 
-  // Zeile 4: Telefon Nr. | Blockschrift
-  doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', leftColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.telefonNr || '-', valueStartLeft, currentRowY)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Blockschrift:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.blockschrift || '-', valueStartRight, currentRowY)
-  currentRowY += 6
-
-  yPos = currentRowY + 3
+  yPos = currentRowY + 8
 
   // Leistung Table
   doc.setFont('helvetica', 'bold')
@@ -310,26 +298,33 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     })
   }
   
-  // Blockschrift wurde bereits oben angezeigt, daher hier überspringen
   yPos += 3
 
-  // Sonstiges
+  yPos += 3
+
+  // Sonstiges links
+  const sonstigesStartY = yPos
+  let sonstigesEndY = yPos
   if (data.sonstiges) {
     if (yPos > 200) {
       doc.addPage()
       yPos = 20
+      sonstigesStartY = yPos
+      sonstigesEndY = yPos
     }
-    yPos += 3
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
-    doc.text('Sonstiges', 20, yPos)
-    yPos += 5
+    doc.text('Sonstiges', 20, sonstigesStartY)
+    sonstigesEndY = sonstigesStartY + 5
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
-    const sonstigesLines = doc.splitTextToSize(data.sonstiges, 170)
-    doc.text(sonstigesLines, 20, yPos)
-    yPos += sonstigesLines.length * 4 + 3
+    const sonstigesLines = doc.splitTextToSize(data.sonstiges, 80)
+    doc.text(sonstigesLines, 20, sonstigesEndY)
+    sonstigesEndY += sonstigesLines.length * 4 + 3
   }
+
+  // yPos auf das Ende von Sonstiges setzen
+  yPos = sonstigesEndY
 
   // Signatures - sicherstellen, dass genug Platz ist
   if (yPos > 200) {
@@ -342,6 +337,23 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const signatureY = Math.max(yPos, 160)
   const signatureWidth = 70
   const signatureHeight = 30
+
+  // Monteur (links, über Kunden-Unterschrift) und Blockschrift (rechts, über Mitarbeiter-Unterschrift) auf gleicher Höhe
+  const monteurBlockschriftY = signatureY - 8
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  const monteurLabelWidth = doc.getTextWidth('Monteur:')
+  doc.text('Monteur:', 20, monteurBlockschriftY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.monteur || '-', 20 + monteurLabelWidth + 2, monteurBlockschriftY)
+  
+  // Blockschrift rechts auf gleicher Höhe wie Monteur
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  const blockschriftLabelWidth = doc.getTextWidth('Blockschrift:')
+  doc.text('Blockschrift:', 110, monteurBlockschriftY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.blockschrift || '-', 110 + blockschriftLabelWidth + 2, monteurBlockschriftY)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
