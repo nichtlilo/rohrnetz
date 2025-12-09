@@ -310,10 +310,8 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   
   yPos += 3
 
-  yPos += 3
-
   // Sonstiges links - sicherstellen, dass es nicht mit Unterschriften kollidiert
-  const sonstigesStartY = yPos
+  let sonstigesStartY = yPos
   let sonstigesEndY = yPos
   const signatureAreaStart = 240 // Unterschriften beginnen ab hier
   if (data.sonstiges) {
