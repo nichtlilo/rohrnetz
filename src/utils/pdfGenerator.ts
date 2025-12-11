@@ -157,7 +157,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   const einsatzortText = (data.einsatzort || '-').substring(0, 50) // Begrenzen auf eine Zeile
   doc.text(einsatzortText, valueStartLeft, currentRowY)
-  currentRowY += 5
+  currentRowY += 7
 
   // Zeile 2: RG - Empfänger (einzeilig)
   doc.setFont('helvetica', 'bold')
@@ -165,7 +165,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   const rgEmpfaengerText = (data.rgEmpfaenger || '-').substring(0, 50) // Begrenzen auf eine Zeile
   doc.text(rgEmpfaengerText, valueStartLeft, currentRowY)
-  currentRowY += 5
+  currentRowY += 7
 
   // Zeile 3: Art der Arbeit (einzeilig)
   doc.setFont('helvetica', 'bold')
@@ -173,7 +173,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   const artDerArbeitText = (data.artDerArbeit || '-').substring(0, 50) // Begrenzen auf eine Zeile
   doc.text(artDerArbeitText, valueStartLeft, currentRowY)
-  currentRowY += 5
+  currentRowY += 7
 
   // Zeile 4: E-Mail | Telefon Nr. (zusammen in einer Zeile)
   const rightColX = 105
@@ -273,7 +273,8 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
       xPos += colWidths[0]
       
       // Netto € Spalte (zentriert, vertikal zentriert)
-      const nettoText = nettoPreis || '-'
+      // Bei Zuschlag "-" anzeigen
+      const nettoText = row.beschreibung.startsWith('Zuschlag') ? '-' : (nettoPreis || '-')
       doc.text(nettoText, xPos + colWidths[1] / 2, centerY, { align: 'center' })
       xPos += colWidths[1]
       
@@ -308,7 +309,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
     })
   }
   
-  yPos += 3
+  yPos += 8
 
   // Sonstiges links - sicherstellen, dass es nicht mit Unterschriften kollidiert
   let sonstigesStartY = yPos
