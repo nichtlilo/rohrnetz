@@ -376,6 +376,7 @@
 .btn-generate-pdf {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
   background-color: #4caf50;
@@ -387,6 +388,8 @@
   font-weight: 600;
   margin-top: 0;
   transition: background-color 0.2s;
+  flex: 1;
+  min-width: 0;
 }
 
 .btn-generate-pdf:hover {
@@ -396,6 +399,7 @@
 .btn-asana-form {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
   background-color: #F06A6A;
@@ -407,6 +411,8 @@
   font-weight: 600;
   margin-top: 0;
   transition: background-color 0.2s;
+  flex: 1;
+  min-width: 0;
 }
 
 .btn-asana-form:hover {

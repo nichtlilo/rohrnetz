@@ -464,12 +464,6 @@ function Tagesbericht() {
         <div className="form-section">
           <div className="form-section-header">
             <h3 className="form-section-title">Arbeitsbezeichnung</h3>
-            <button className="btn-add" onClick={addArbeitsbeschreibungRow}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Position hinzufügen
-            </button>
           </div>
 
           <div className="table-wrapper">
@@ -532,17 +526,18 @@ function Tagesbericht() {
               </tbody>
             </table>
           </div>
+          
+          <button className="btn-add" onClick={addArbeitsbeschreibungRow} style={{ marginTop: '1rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Position hinzufügen
+          </button>
         </div>
 
         <div className="form-section">
           <div className="form-section-header">
-          <h3 className="form-section-title">Materialverbrauch und Maschinenstunden</h3>
-            <button className="btn-add" onClick={addMaterialRow}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Position hinzufügen
-            </button>
+            <h3 className="form-section-title">Materialverbrauch und Maschinenstunden</h3>
           </div>
 
           <div className="table-wrapper">
@@ -590,6 +585,13 @@ function Tagesbericht() {
               </tbody>
             </table>
           </div>
+          
+          <button className="btn-add" onClick={addMaterialRow} style={{ marginTop: '1rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Position hinzufügen
+          </button>
         </div>
 
         <div className="signature-section">
