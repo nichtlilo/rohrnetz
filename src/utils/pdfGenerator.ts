@@ -31,16 +31,11 @@ export interface TagesberichtData {
   telefonNr: string
   monteurArbeitszeit: string
   artDerArbeit: string
-  kipperMontage: string
-  minibagger: string
-  radlader: string
-  bsAufgestelltAm: string
-  manRb810: string
-  neusson: string
-  sonstiges: string
-  container: string
-  atlas: string
-  spueler: string
+  geräte: Array<{
+    gerät: string
+    kilometer: string
+    stunden: string
+  }>
   arbeitsbeschreibungen: Array<{
     beschreibung: string
     mengeStd: string
@@ -48,7 +43,7 @@ export interface TagesberichtData {
   }>
   materialien: Array<{
     beschreibung: string
-  mengeStd: string
+    mengeStd: string
   }>
   kundeSignatur: string
   mitarbeiterSignatur: string
@@ -409,42 +404,42 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
 
 export function generateTagesberichtPDF(data: TagesberichtData) {
   const doc = new jsPDF()
-  let yPos = 20
+  let yPos = 15
 
   if (COMPANY_LOGO_BASE64) {
-    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 10, 40, 12)
+    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 8, 35, 10)
   }
 
-  // Header
-  doc.setFontSize(16)
+  // Header - kompakter
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 7
+  yPos += 5
   
-  // Firmendaten (Kontaktinformationen)
-  doc.setFontSize(9)
+  // Firmendaten (Kontaktinformationen) - kompakter
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
-  yPos += 8
+  yPos += 6
 
   // Title
-  doc.setFontSize(14)
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(25, 118, 210)
   doc.text('Tagesbericht', 20, yPos)
-  yPos += 10
+  yPos += 7
 
-  doc.setFontSize(10)
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information
+  // Basic Information - kompakter
   doc.setFont('helvetica', 'bold')
   doc.text('Datum:', 20, yPos)
   doc.setFont('helvetica', 'normal')
@@ -454,162 +449,164 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Wochentag:', 100, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text(data.wochentag || '-', 130, yPos)
-  yPos += 7
+  yPos += 5
 
   doc.setFont('helvetica', 'bold')
   doc.text('Auftraggeber:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.auftraggeber || '-', 50, yPos)
-  yPos += 7
+  doc.text((data.auftraggeber || '-').substring(0, 30), 50, yPos)
+  yPos += 5
 
   doc.setFont('helvetica', 'bold')
   doc.text('Ort:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.ort || '-', 50, yPos)
+  doc.text((data.ort || '-').substring(0, 25), 50, yPos)
   
   doc.setFont('helvetica', 'bold')
   doc.text('Straße/Haus-Nr.:', 100, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.strasseHausNr || '-', 150, yPos)
-  yPos += 7
+  doc.text((data.strasseHausNr || '-').substring(0, 25), 150, yPos)
+  yPos += 5
 
   doc.setFont('helvetica', 'bold')
   doc.text('Tel.Nr.:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text(data.telefonNr || '-', 50, yPos)
-  yPos += 7
-
+  
   doc.setFont('helvetica', 'bold')
-  doc.text('Monteur/Arbeitszeit:', 20, yPos)
+  doc.text('Monteur/Arbeitszeit:', 100, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.monteurArbeitszeit || '-', 70, yPos)
-  yPos += 7
+  doc.text((data.monteurArbeitszeit || '-').substring(0, 30), 150, yPos)
+  yPos += 5
 
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 170)
   doc.text(artDerArbeitLines, 20, yPos)
-  yPos += artDerArbeitLines.length * 5 + 5
+  yPos += artDerArbeitLines.length * 4 + 8
 
-  // Equipment
-  if (yPos > 200) {
-    doc.addPage()
-    yPos = 20
-  }
+  // Einheitliche Spaltenpositionen für alle Tabellen
+  const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
+  const col1Width = 90
+  const col2Start = col1Start + col1Width  // Zweite Spalte (Kilometer/Menge/Std.)
+  const col2Width = 40
+  const col3Start = col2Start + col2Width  // Dritte Spalte (Stunden/Einheit)
+  const col3Width = 40
+  const totalTableWidth = col1Width + col2Width + col3Width
+
+  // Equipment - als Tabelle
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('Geräte und Maschinen', 20, yPos)
-  yPos += 7
-
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  
-  const equipment = [
-    { label: 'Kipper:', value: data.kipperMontage },
-    { label: 'MAN RB 810:', value: data.manRb810 },
-    { label: 'Container:', value: data.container },
-    { label: 'Minibagger:', value: data.minibagger },
-    { label: 'Neusson:', value: data.neusson },
-    { label: 'Atlas/JCB:', value: data.atlas },
-    { label: 'Radlader:', value: data.radlader },
-    { label: 'Spüler:', value: data.spueler },
-    { label: 'Sonstiges:', value: data.sonstiges },
-    { label: 'BS aufgestellt am:', value: data.bsAufgestelltAm }
-  ]
+  doc.text('Geräte und Maschinen', col1Start, yPos)
+  yPos += 8
 
-  let col1X = 20
-  let col2X = 100
-  let col3X = 160
+  if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.kilometer || g.stunden)) {
+    const tableHeaders = ['Gerät', 'Kilometer', 'Stunden']
+    const colPositions = [col1Start, col2Start, col3Start]
+    const colWidths = [col1Width, col2Width, col3Width]
 
-  equipment.forEach((item, index) => {
-    const xPos = index % 3 === 0 ? col1X : index % 3 === 1 ? col2X : col3X
-    const lineY = yPos + Math.floor(index / 3) * 7
-
+    doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
-    doc.text(item.label, xPos, lineY)
+    doc.setFillColor(245, 245, 245)
+    const headerHeight = 7
+    doc.rect(col1Start, yPos - 5, totalTableWidth, headerHeight, 'F')
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, colPositions[i] + 2, yPos)
+    })
+    yPos += headerHeight
+
     doc.setFont('helvetica', 'normal')
-    doc.text(item.value || '-', xPos + 40, lineY)
-  })
-
-  yPos += Math.ceil(equipment.length / 3) * 7 + 5
-
-  // Arbeitsbezeichnung Table
-  if (yPos > 200) {
-    doc.addPage()
-    yPos = 20
+    data.geräte.forEach((row) => {
+      if (row.gerät || row.kilometer || row.stunden) {
+        if (yPos > 250) {
+          doc.addPage()
+          yPos = 20
+        }
+        const rowData = [
+          (row.gerät || '').substring(0, 30),
+          row.kilometer || '-',
+          row.stunden || '-'
+        ]
+        rowData.forEach((cell, i) => {
+          doc.text(cell, colPositions[i] + 2, yPos)
+        })
+        yPos += 4
+      }
+    })
+  } else {
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Keine Geräte angegeben', col1Start, yPos)
+    yPos += 4
   }
+  
+  yPos += 3
+
+  // Arbeitsbezeichnung Table - kompakter
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('Arbeitsbezeichnung', 20, yPos)
-  yPos += 7
+  doc.setFontSize(10)
+  doc.text('Arbeitsbezeichnung', col1Start, yPos)
+  yPos += 8
 
   if (data.arbeitsbeschreibungen && data.arbeitsbeschreibungen.length > 0) {
     const tableHeaders = ['Beschreibung', 'Menge/Std.', 'Einheit']
-    const colWidths = [90, 40, 40]
-    let xPos = 20
+    const colPositions = [col1Start, col2Start, col3Start]
+    const colWidths = [col1Width, col2Width, col3Width]
 
-    doc.setFontSize(9)
+    doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
     doc.setFillColor(245, 245, 245)
-    doc.rect(xPos, yPos - 5, 170, 6, 'F')
+    const headerHeight = 7
+    doc.rect(col1Start, yPos - 5, totalTableWidth, headerHeight, 'F')
     tableHeaders.forEach((header, i) => {
-      doc.text(header, xPos + 2, yPos)
-      xPos += colWidths[i]
+      doc.text(header, colPositions[i] + 2, yPos)
     })
-    yPos += 7
+    yPos += headerHeight
 
     doc.setFont('helvetica', 'normal')
     data.arbeitsbeschreibungen.forEach((row) => {
-      if (yPos > 250) {
-        doc.addPage()
-        yPos = 20
+      if (row.beschreibung || row.mengeStd || row.einheit) {
+        if (yPos > 250) {
+          doc.addPage()
+          yPos = 20
+        }
+        const beschreibungLines = doc.splitTextToSize(row.beschreibung || '', col1Width - 4)
+        const maxLines = Math.min(beschreibungLines.length, 2) // Max 2 Zeilen
+        beschreibungLines.slice(0, maxLines).forEach((line: string, lineIdx: number) => {
+          doc.text(line, col1Start + 2, yPos + (lineIdx * 3.5))
+        })
+        doc.text((row.mengeStd || '').substring(0, 15), col2Start + 2, yPos)
+        doc.text((row.einheit || '').substring(0, 15), col3Start + 2, yPos)
+        yPos += Math.max(maxLines * 3.5, 4)
       }
-      xPos = 20
-      const rowData = [
-        row.beschreibung || '',
-        row.mengeStd || '',
-        row.einheit || ''
-      ]
-      rowData.forEach((cell, i) => {
-        doc.text(cell.substring(0, 20), xPos + 2, yPos)
-        xPos += colWidths[i]
-      })
-      yPos += 6
     })
   }
+  
+  yPos += 3
 
-  // Materialverbrauch
-  if (yPos > 240) {
-    doc.addPage()
-    yPos = 20
-  }
-  yPos += 5
+  // Materialverbrauch - kompakter
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('Materialverbrauch und Maschinenstunden', 20, yPos)
-  yPos += 7
-
-  // Materialverbrauch und Maschinenstunden
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Materialverbrauch und Maschinenstunden', 20, yPos)
-  yPos += 10
+  doc.setFontSize(10)
+  doc.text('Materialverbrauch und Maschinenstunden', col1Start, yPos)
+  yPos += 8
 
   if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.mengeStd)) {
-    // Tabellenkopf
-    doc.setFontSize(10)
+    const tableHeaders = ['Material/Beschreibung', 'Menge/Std.']
+    const colPositions = [col1Start, col2Start]
+    const colWidths = [col1Width, col2Width]
+    const materialTableWidth = col1Width + col2Width
+
+    doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
-    doc.text('Material/Beschreibung', 20, yPos)
-    doc.text('Menge/Std.', 120, yPos)
-  yPos += 7
+    doc.setFillColor(245, 245, 245)
+    const headerHeight = 7
+    doc.rect(col1Start, yPos - 5, materialTableWidth, headerHeight, 'F')
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, colPositions[i] + 2, yPos)
+    })
+    yPos += headerHeight
 
-    // Trennlinie
-    doc.setLineWidth(0.5)
-    doc.line(20, yPos, 190, yPos)
-    yPos += 5
-
-    // Materialien
     doc.setFont('helvetica', 'normal')
     data.materialien.forEach((material) => {
       if (material.beschreibung || material.mengeStd) {
@@ -617,34 +614,27 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           doc.addPage()
           yPos = 20
         }
-        doc.text(material.beschreibung || '-', 20, yPos)
-        doc.text(material.mengeStd || '-', 120, yPos)
-        yPos += 7
+        doc.text((material.beschreibung || '-').substring(0, 40), col1Start + 2, yPos)
+        doc.text(material.mengeStd || '-', col2Start + 2, yPos)
+        yPos += 4
       }
     })
   } else {
-    doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-    doc.text('Keine Materialien angegeben', 20, yPos)
-    yPos += 7
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Keine Materialien angegeben', col1Start, yPos)
+    yPos += 4
   }
   
-  yPos += 10
+  yPos += 5
 
-  // Signatures
-  if (yPos > 180) {
-    doc.addPage()
-    yPos = 20
-  } else {
-    yPos += 5
-  }
-
-  const signatureY = Math.max(yPos, 160)
+  // Signatures - kompakter
+  const signatureY = Math.max(yPos, 200)
   const signatureWidth = 70
-  const signatureHeight = 30
+  const signatureHeight = 25
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
+  doc.setFontSize(9)
   doc.text('Unterschrift Kunde', 20, signatureY)
   if (data.kundeSignatur) {
     addImageToPDF(doc, data.kundeSignatur, 20, signatureY + 2, signatureWidth, signatureHeight)
