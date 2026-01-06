@@ -504,7 +504,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.kilometer || g.stunden)) {
     const tableHeaders = ['Gerät', 'Kilometer', 'Stunden']
     const colPositions = [col1Start, col2Start, col3Start]
-    const colWidths = [col1Width, col2Width, col3Width]
 
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
@@ -552,7 +551,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   if (data.arbeitsbeschreibungen && data.arbeitsbeschreibungen.length > 0) {
     const tableHeaders = ['Beschreibung', 'Menge/Std.', 'Einheit']
     const colPositions = [col1Start, col2Start, col3Start]
-    const colWidths = [col1Width, col2Width, col3Width]
 
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
@@ -594,7 +592,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.mengeStd)) {
     const tableHeaders = ['Material/Beschreibung', 'Menge/Std.']
     const colPositions = [col1Start, col2Start]
-    const colWidths = [col1Width, col2Width]
     const materialTableWidth = col1Width + col2Width
 
     doc.setFontSize(8)
