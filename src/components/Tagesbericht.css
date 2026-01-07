@@ -134,6 +134,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  table-layout: fixed;
 }
 
 .arbeitsbeschreibung-table thead {
@@ -151,6 +152,60 @@
 .arbeitsbeschreibung-table td {
   padding: 0.5rem;
   border-bottom: 1px solid #e0e0e0;
+}
+
+/* Delete-Spalte immer gleich breit und rechts ausgerichtet für alle Tabellen */
+.arbeitsbeschreibung-table th:last-child,
+.arbeitsbeschreibung-table td:last-child {
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  text-align: center;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+/* Spezifische Spaltenbreiten für Geräte-Tabelle (3 Spalten) */
+.arbeitsbeschreibung-table-geräte th:nth-child(1),
+.arbeitsbeschreibung-table-geräte td:nth-child(1) {
+  width: calc(60% - 25px);
+}
+
+.arbeitsbeschreibung-table-geräte th:nth-child(2),
+.arbeitsbeschreibung-table-geräte td:nth-child(2) {
+  width: calc(40% - 25px);
+}
+
+/* Spezifische Spaltenbreiten für Arbeitsbezeichnung (4 Spalten) */
+.arbeitsbeschreibung-table-arbeits th:nth-child(1),
+.arbeitsbeschreibung-table-arbeits td:nth-child(1) {
+  width: calc(65% - 16.67px);
+}
+
+.arbeitsbeschreibung-table-arbeits th:nth-child(2),
+.arbeitsbeschreibung-table-arbeits td:nth-child(2) {
+  width: calc(10% - 16.67px);
+}
+
+.arbeitsbeschreibung-table-arbeits th:nth-child(3),
+.arbeitsbeschreibung-table-arbeits td:nth-child(3) {
+  width: calc(25% - 16.67px);
+}
+
+/* Spezifische Spaltenbreiten für Material-Tabelle (4 Spalten) */
+.arbeitsbeschreibung-table-material th:nth-child(1),
+.arbeitsbeschreibung-table-material td:nth-child(1) {
+  width: calc(50% - 16.67px);
+}
+
+.arbeitsbeschreibung-table-material th:nth-child(2),
+.arbeitsbeschreibung-table-material td:nth-child(2) {
+  width: calc(20% - 16.67px);
+}
+
+.arbeitsbeschreibung-table-material th:nth-child(3),
+.arbeitsbeschreibung-table-material td:nth-child(3) {
+  width: calc(30% - 16.67px);
 }
 
 .table-input {

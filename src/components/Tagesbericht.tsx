@@ -5,35 +5,33 @@ import './Tagesbericht.css'
 
 const GERÄTE_OPTIONEN = [
   'Kipper',
-  'MAN RB 810',
+  'LKW bis 7,5t',
   'Container',
   'Minibagger',
   'Neusson',
   'Atlas/JCB',
   'Radlader',
-  'Spüler',
-  'Sonstiges',
-  'BS aufgestellt am'
+  'Spüler'
 ]
 
 interface ArbeitsbeschreibungRow {
   id: string
   beschreibung: string
   mengeStd: string
-  einheit: string
+  bemerkung: string
 }
 
 interface MaterialRow {
   id: string
   beschreibung: string
-  mengeStd: string
+  menge: string
+  einheit: string
 }
 
 interface GerätRow {
   id: string
   gerät: string
-  kilometer: string
-  stunden: string
+  menge: string
 }
 
 interface TagesberichtData {
@@ -89,19 +87,19 @@ function Tagesbericht() {
     geräte: [{
       id: '1',
       gerät: '',
-      kilometer: '',
-      stunden: ''
+      menge: ''
     }],
     arbeitsbeschreibungen: [{
       id: '1',
       beschreibung: '',
       mengeStd: '',
-      einheit: ''
+      bemerkung: ''
     }],
     materialien: [{
       id: '1',
       beschreibung: '',
-      mengeStd: ''
+      menge: '',
+      einheit: ''
     }],
     kundeSignatur: '',
     mitarbeiterSignatur: ''
@@ -195,7 +193,7 @@ function Tagesbericht() {
         id: Date.now().toString(),
         beschreibung: '',
         mengeStd: '',
-        einheit: ''
+        bemerkung: ''
       }]
     }))
   }
@@ -222,7 +220,8 @@ function Tagesbericht() {
       materialien: [...prev.materialien, {
         id: Date.now().toString(),
         beschreibung: '',
-        mengeStd: ''
+        menge: '',
+        einheit: ''
       }]
     }))
   }
@@ -249,8 +248,7 @@ function Tagesbericht() {
       geräte: [...prev.geräte, {
         id: Date.now().toString(),
         gerät: '',
-        kilometer: '',
-        stunden: ''
+        menge: ''
       }]
     }))
   }
@@ -408,12 +406,11 @@ function Tagesbericht() {
           </div>
 
           <div className="table-wrapper">
-            <table className="arbeitsbeschreibung-table">
+            <table className="arbeitsbeschreibung-table arbeitsbeschreibung-table-geräte">
               <thead>
                 <tr>
                   <th>Gerät</th>
-                  <th>Kilometer</th>
-                  <th>Stunden</th>
+                  <th>Kilometer / Stunden</th>
                   <th></th>
                 </tr>
               </thead>
@@ -435,22 +432,43 @@ function Tagesbericht() {
                       </select>
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="km"
-                        value={row.kilometer}
-                        onChange={(e) => handleGerätChange(row.id, 'kilometer', e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="h"
-                        value={row.stunden}
-                        onChange={(e) => handleGerätChange(row.id, 'stunden', e.target.value)}
-                      />
+                      {(() => {
+                        const isKilometerGerät = (name: string) => {
+                          return ['Kipper', 'LKW bis 7,5t', 'Container'].includes(name)
+                        }
+
+                        const buildMengenOptionen = (max: number) => {
+                          const options: string[] = ['']
+                          for (let v = 0.5; v <= max; v += 0.5) {
+                            const isHalf = v % 1 !== 0
+                            const formattedValue = isHalf
+                              ? `${v}`.replace('.', ',')
+                              : `${v},0`
+                            options.push(formattedValue)
+                          }
+                          return options
+                        }
+
+                        const isKm = isKilometerGerät(row.gerät)
+                        const max = isKm ? 100 : 8
+                        const options = buildMengenOptionen(max)
+
+                        return (
+                          <select
+                            className="table-input"
+                            value={row.menge}
+                            onChange={(e) => handleGerätChange(row.id, 'menge', e.target.value)}
+                          >
+                            {options.map(opt => (
+                              <option key={opt} value={opt}>
+                                {opt === ''
+                                  ? isKm ? 'Kilometer wählen' : 'Stunden wählen'
+                                  : `${opt} ${isKm ? 'km' : 'h'}`}
+                              </option>
+                            ))}
+                          </select>
+                        )
+                      })()}
                     </td>
                     <td>
                       <button
@@ -482,12 +500,12 @@ function Tagesbericht() {
           </div>
 
           <div className="table-wrapper">
-            <table className="arbeitsbeschreibung-table">
+            <table className="arbeitsbeschreibung-table arbeitsbeschreibung-table-arbeits">
               <thead>
                 <tr>
                   <th>Beschreibung</th>
                   <th>Menge/Std.</th>
-                  <th>Einheit</th>
+                  <th>Bemerkung</th>
                   <th></th>
                 </tr>
               </thead>
@@ -516,9 +534,9 @@ function Tagesbericht() {
                       <input
                         type="text"
                         className="table-input"
-                        placeholder="m, m³, Std."
-                        value={row.einheit}
-                        onChange={(e) => handleArbeitsbeschreibungChange(row.id, 'einheit', e.target.value)}
+                        placeholder="Bemerkung"
+                        value={row.bemerkung}
+                        onChange={(e) => handleArbeitsbeschreibungChange(row.id, 'bemerkung', e.target.value)}
                       />
                     </td>
                     <td>
@@ -551,11 +569,12 @@ function Tagesbericht() {
           </div>
 
           <div className="table-wrapper">
-            <table className="arbeitsbeschreibung-table">
+            <table className="arbeitsbeschreibung-table arbeitsbeschreibung-table-material">
               <thead>
                 <tr>
                   <th>Material/Beschreibung</th>
-                  <th>Menge/Std.</th>
+                  <th>Menge</th>
+                  <th>Einheit</th>
                   <th></th>
                 </tr>
               </thead>
@@ -563,22 +582,108 @@ function Tagesbericht() {
                 {formData.materialien.map((row) => (
                   <tr key={row.id}>
                     <td>
-              <input
-                type="text"
+                      <input
+                        type="text"
                         className="table-input"
                         placeholder="Material/Beschreibung"
                         value={row.beschreibung}
                         onChange={(e) => handleMaterialChange(row.id, 'beschreibung', e.target.value)}
-              />
+                      />
                     </td>
                     <td>
-              <input
-                type="text"
-                        className="table-input"
-                        placeholder="Menge/Std."
-                        value={row.mengeStd}
-                        onChange={(e) => handleMaterialChange(row.id, 'mengeStd', e.target.value)}
-              />
+                      {(() => {
+                        const buildMengeOptionen = () => {
+                          const options: string[] = ['']
+                          // Frei wählbar Option
+                          options.push('__FREI__')
+                          // 1-20 in 1er Schritten
+                          for (let i = 1; i <= 20; i++) {
+                            options.push(String(i))
+                          }
+                          return options
+                        }
+
+                        const options = buildMengeOptionen()
+                        const numValue = row.menge && !isNaN(Number(row.menge)) && Number(row.menge) >= 1 && Number(row.menge) <= 20
+                        const isFreiWählbar = !numValue && row.menge !== ''
+                        const selectValue = numValue ? row.menge : (isFreiWählbar ? '__FREI__' : '')
+
+                        return (
+                          <>
+                            <select
+                              className="table-input"
+                              value={selectValue}
+                              onChange={(e) => {
+                                if (e.target.value === '__FREI__') {
+                                  handleMaterialChange(row.id, 'menge', '')
+                                } else if (e.target.value === '') {
+                                  handleMaterialChange(row.id, 'menge', '')
+                                } else {
+                                  handleMaterialChange(row.id, 'menge', e.target.value)
+                                }
+                              }}
+                            >
+                              {options.map(opt => (
+                                <option key={opt} value={opt}>
+                                  {opt === '' ? 'Menge wählen' : opt === '__FREI__' ? 'Frei wählbar' : `${opt} Stk.`}
+                                </option>
+                              ))}
+                            </select>
+                            {isFreiWählbar && (
+                              <input
+                                type="text"
+                                className="table-input"
+                                style={{ marginTop: '0.25rem' }}
+                                placeholder="Freie Eingabe"
+                                value={row.menge}
+                                onChange={(e) => handleMaterialChange(row.id, 'menge', e.target.value)}
+                              />
+                            )}
+                          </>
+                        )
+                      })()}
+                    </td>
+                    <td>
+                      {(() => {
+                        const einheitOptionen = ['', '__FREI__', 'Stück', 'Meter', 'Quadratmeter', 'Kubikmeter']
+                        const isStandardEinheit = ['Stück', 'Meter', 'Quadratmeter', 'Kubikmeter'].includes(row.einheit)
+                        const isFreiWählbarEinheit = !isStandardEinheit && row.einheit !== ''
+                        const selectValue = isStandardEinheit ? row.einheit : (isFreiWählbarEinheit ? '__FREI__' : '')
+
+                        return (
+                          <>
+                            <select
+                              className="table-input"
+                              value={selectValue}
+                              onChange={(e) => {
+                                if (e.target.value === '__FREI__') {
+                                  handleMaterialChange(row.id, 'einheit', '')
+                                } else if (e.target.value === '') {
+                                  handleMaterialChange(row.id, 'einheit', '')
+                                } else {
+                                  handleMaterialChange(row.id, 'einheit', e.target.value)
+                                }
+                              }}
+                            >
+                              {einheitOptionen.map(opt => (
+                                <option key={opt} value={opt}>
+                                  {opt === '' ? 'Einheit wählen' : opt === '__FREI__' ? 'Frei wählbar' : opt}
+                                </option>
+                              ))}
+                            </select>
+                            {isFreiWählbarEinheit && (
+                              <input
+                                type="text"
+                                className="table-input"
+                                style={{ marginTop: '0.25rem' }}
+                                placeholder="Freie Eingabe"
+                                value={row.einheit}
+                                onChange={(e) => handleMaterialChange(row.id, 'einheit', e.target.value)}
+                              />
+                            )}
+                          </>
+                        )
+                      })()}
                     </td>
                     <td>
                       <button

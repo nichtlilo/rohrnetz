@@ -33,17 +33,17 @@ export interface TagesberichtData {
   artDerArbeit: string
   geräte: Array<{
     gerät: string
-    kilometer: string
-    stunden: string
+    menge: string
   }>
   arbeitsbeschreibungen: Array<{
     beschreibung: string
     mengeStd: string
-    einheit: string
+    bemerkung: string
   }>
   materialien: Array<{
     beschreibung: string
-    mengeStd: string
+    menge: string
+    einheit: string
   }>
   kundeSignatur: string
   mitarbeiterSignatur: string
@@ -488,11 +488,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
-  const col1Width = 90
+  const col1Width = 110
   const col2Start = col1Start + col1Width  // Zweite Spalte (Kilometer/Menge/Std.)
-  const col2Width = 40
-  const col3Start = col2Start + col2Width  // Dritte Spalte (Stunden/Einheit)
-  const col3Width = 40
+  const col2Width = 30
+  const col3Start = col2Start + col2Width  // Dritte Spalte (Bemerkung/Einheit)
+  const col3Width = 30
   const totalTableWidth = col1Width + col2Width + col3Width
 
   // Equipment - als Tabelle
@@ -501,8 +501,12 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Geräte und Maschinen', col1Start, yPos)
   yPos += 8
 
-  if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.kilometer || g.stunden)) {
-    const tableHeaders = ['Gerät', 'Kilometer', 'Stunden']
+  const isKilometerGerät = (name: string) => {
+    return ['Kipper', 'LKW bis 7,5t', 'Container'].includes(name)
+  }
+
+  if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.menge)) {
+    const tableHeaders = ['Gerät', 'Menge (km/h)', '']
     const colPositions = [col1Start, col2Start, col3Start]
 
     doc.setFontSize(8)
@@ -517,19 +521,21 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
     doc.setFont('helvetica', 'normal')
     data.geräte.forEach((row) => {
-      if (row.gerät || row.kilometer || row.stunden) {
+      if (row.gerät || row.menge) {
         if (yPos > 250) {
           doc.addPage()
           yPos = 20
         }
-        const rowData = [
-          (row.gerät || '').substring(0, 30),
-          row.kilometer || '-',
-          row.stunden || '-'
-        ]
-        rowData.forEach((cell, i) => {
-          doc.text(cell, colPositions[i] + 2, yPos)
-        })
+        const isKm = isKilometerGerät(row.gerät)
+        const mengeText = row.menge
+          ? `${row.menge} ${isKm ? 'km' : 'h'}`
+          : '-'
+
+        // Gerät
+        doc.text((row.gerät || '').substring(0, 30), colPositions[0] + 2, yPos)
+        // Menge (km/h)
+        doc.text(mengeText, colPositions[1] + 2, yPos)
+
         yPos += 4
       }
     })
@@ -549,7 +555,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 8
 
   if (data.arbeitsbeschreibungen && data.arbeitsbeschreibungen.length > 0) {
-    const tableHeaders = ['Beschreibung', 'Menge/Std.', 'Einheit']
+    const tableHeaders = ['Beschreibung', 'Menge/Std.', 'Bemerkung']
     const colPositions = [col1Start, col2Start, col3Start]
 
     doc.setFontSize(8)
@@ -564,7 +570,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
     doc.setFont('helvetica', 'normal')
     data.arbeitsbeschreibungen.forEach((row) => {
-      if (row.beschreibung || row.mengeStd || row.einheit) {
+      if (row.beschreibung || row.mengeStd || row.bemerkung) {
         if (yPos > 250) {
           doc.addPage()
           yPos = 20
@@ -575,7 +581,10 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           doc.text(line, col1Start + 2, yPos + (lineIdx * 3.5))
         })
         doc.text((row.mengeStd || '').substring(0, 15), col2Start + 2, yPos)
-        doc.text((row.einheit || '').substring(0, 15), col3Start + 2, yPos)
+        const bemerkungLines = doc.splitTextToSize(row.bemerkung || '', col3Width - 4)
+        bemerkungLines.slice(0, 2).forEach((line: string, lineIdx: number) => {
+          doc.text(line, col3Start + 2, yPos + (lineIdx * 3.5))
+        })
         yPos += Math.max(maxLines * 3.5, 4)
       }
     })
@@ -589,10 +598,10 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Materialverbrauch und Maschinenstunden', col1Start, yPos)
   yPos += 8
 
-  if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.mengeStd)) {
-    const tableHeaders = ['Material/Beschreibung', 'Menge/Std.']
-    const colPositions = [col1Start, col2Start]
-    const materialTableWidth = col1Width + col2Width
+  if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.menge || m.einheit)) {
+    const tableHeaders = ['Material/Beschreibung', 'Menge', 'Einheit']
+    const colPositions = [col1Start, col2Start, col3Start]
+    const materialTableWidth = col1Width + col2Width + col3Width
 
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
@@ -606,13 +615,14 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
     doc.setFont('helvetica', 'normal')
     data.materialien.forEach((material) => {
-      if (material.beschreibung || material.mengeStd) {
+      if (material.beschreibung || material.menge || material.einheit) {
         if (yPos > 250) {
           doc.addPage()
           yPos = 20
         }
         doc.text((material.beschreibung || '-').substring(0, 40), col1Start + 2, yPos)
-        doc.text(material.mengeStd || '-', col2Start + 2, yPos)
+        doc.text(material.menge || '-', col2Start + 2, yPos)
+        doc.text(material.einheit || '-', col3Start + 2, yPos)
         yPos += 4
       }
     })
@@ -625,10 +635,19 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   
   yPos += 5
 
-  // Signatures - kompakter
-  const signatureY = Math.max(yPos, 200)
+  // Signatures - immer am Ende der letzten Seite, mit Hinweistext darunter
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const bottomMargin = 15
   const signatureWidth = 70
   const signatureHeight = 25
+
+  // Falls der aktuelle Inhalt zu weit unten ist, neue Seite beginnen,
+  // damit die Unterschriften immer sauber am Ende stehen
+  if (yPos > pageHeight - bottomMargin - signatureHeight - 20) {
+    doc.addPage()
+  }
+
+  const signatureY = pageHeight - bottomMargin - signatureHeight - 10
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
@@ -647,6 +666,14 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     doc.setLineWidth(0.5)
     doc.rect(110, signatureY + 2, signatureWidth, signatureHeight)
   }
+
+  // Hinweistext unter den Unterschriften
+  const confirmationText =
+    'Mit der Unterschrift des Mitarbeiters bestätigen wir, dass die Baustellensicherung ordnungsgemäß kontrolliert aufgestellt wurde.'
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'italic')
+  const confirmationY = signatureY + signatureHeight + 8
+  doc.text(confirmationText, 105, confirmationY, { align: 'center', maxWidth: 170 })
 
   doc.save(`Tagesbericht_${data.datum || 'Datum'}.pdf`)
 }
