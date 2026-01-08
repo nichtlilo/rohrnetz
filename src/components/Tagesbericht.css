@@ -177,17 +177,28 @@
 }
 
 /* Spezifische Spaltenbreiten für Arbeitsbezeichnung (3 Spalten) */
+.arbeitsbeschreibung-table-arbeits {
+  table-layout: fixed;
+}
+
 .arbeitsbeschreibung-table-arbeits th:nth-child(1),
 .arbeitsbeschreibung-table-arbeits td:nth-child(1) {
-  width: calc(90% - 25px) !important;
-  min-width: calc(90% - 25px) !important;
+  width: 75% !important;
+  min-width: 75% !important;
 }
 
 .arbeitsbeschreibung-table-arbeits th:nth-child(2),
 .arbeitsbeschreibung-table-arbeits td:nth-child(2) {
-  width: calc(10% - 25px) !important;
-  min-width: calc(10% - 25px) !important;
-  max-width: calc(10% - 25px) !important;
+  width: 15% !important;
+  min-width: 15% !important;
+  max-width: 15% !important;
+}
+
+.arbeitsbeschreibung-table-arbeits th:nth-child(3),
+.arbeitsbeschreibung-table-arbeits td:nth-child(3) {
+  width: 10% !important;
+  min-width: 10% !important;
+  max-width: 10% !important;
 }
 
 /* Spezifische Spaltenbreiten für Material-Tabelle (4 Spalten) */
@@ -292,7 +303,7 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 2rem;
+  margin-top: 0;
   transition: background-color 0.2s;
 }
 
@@ -313,10 +324,8 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 0;
+  margin-top: 2rem;
   transition: background-color 0.2s;
-  flex: 1;
-  min-width: 0;
 }
 
 .btn-asana-form:hover {

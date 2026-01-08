@@ -591,7 +591,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   // Materialverbrauch - kompakter
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  doc.text('Materialverbrauch und Maschinenstunden', col1Start, yPos)
+  doc.text('Materialverbrauch', col1Start, yPos)
   yPos += 8
 
   if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.menge || m.einheit)) {
@@ -617,8 +617,8 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           yPos = 20
         }
         doc.text((material.beschreibung || '-').substring(0, 40), col1Start + 2, yPos)
-        doc.text(material.menge || '-', col2Start + 2, yPos)
-        doc.text(material.einheit || '-', col3Start + 2, yPos)
+        doc.text(material.menge && material.menge !== '__FREI__' ? material.menge : '-', col2Start + 2, yPos)
+        doc.text(material.einheit && material.einheit !== '__FREI__' ? material.einheit : '-', col3Start + 2, yPos)
         yPos += 4
       }
     })

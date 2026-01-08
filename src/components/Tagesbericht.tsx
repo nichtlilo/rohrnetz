@@ -560,7 +560,7 @@ function Tagesbericht() {
 
         <div className="form-section">
           <div className="form-section-header">
-            <h3 className="form-section-title">Materialverbrauch und Maschinenstunden</h3>
+            <h3 className="form-section-title">Materialverbrauch</h3>
           </div>
 
           <div className="table-wrapper">
@@ -600,8 +600,8 @@ function Tagesbericht() {
 
                         const options = buildMengeOptionen()
                         const numValue = row.menge && !isNaN(Number(row.menge)) && Number(row.menge) >= 1 && Number(row.menge) <= 20
-                        const isFreiWählbar = !numValue && row.menge !== ''
-                        const selectValue = numValue ? row.menge : (isFreiWählbar ? '__FREI__' : '')
+                        const isFreiWählbarValue = row.menge && !numValue && row.menge !== '__FREI__'
+                        const selectValue = numValue ? row.menge : (isFreiWählbarValue ? '__FREI__' : (row.menge === '__FREI__' ? '__FREI__' : ''))
 
                         return (
                           <>
@@ -610,7 +610,7 @@ function Tagesbericht() {
                               value={selectValue}
                               onChange={(e) => {
                                 if (e.target.value === '__FREI__') {
-                                  handleMaterialChange(row.id, 'menge', '')
+                                  handleMaterialChange(row.id, 'menge', '__FREI__')
                                 } else if (e.target.value === '') {
                                   handleMaterialChange(row.id, 'menge', '')
                                 } else {
@@ -624,13 +624,13 @@ function Tagesbericht() {
                                 </option>
                               ))}
                             </select>
-                            {isFreiWählbar && (
+                            {(selectValue === '__FREI__' || isFreiWählbarValue) && (
                               <input
                                 type="text"
                                 className="table-input"
                                 style={{ marginTop: '0.25rem' }}
                                 placeholder="Freie Eingabe"
-                                value={row.menge}
+                                value={row.menge === '__FREI__' ? '' : row.menge}
                                 onChange={(e) => handleMaterialChange(row.id, 'menge', e.target.value)}
                               />
                             )}
@@ -640,10 +640,10 @@ function Tagesbericht() {
                     </td>
                     <td>
                       {(() => {
-                        const einheitOptionen = ['', '__FREI__', 'Stück', 'Meter', 'Quadratmeter', 'Kubikmeter']
-                        const isStandardEinheit = ['Stück', 'Meter', 'Quadratmeter', 'Kubikmeter'].includes(row.einheit)
-                        const isFreiWählbarEinheit = !isStandardEinheit && row.einheit !== ''
-                        const selectValue = isStandardEinheit ? row.einheit : (isFreiWählbarEinheit ? '__FREI__' : '')
+                        const einheitOptionen = ['', '__FREI__', 'Stk.', 'm', 'm²', 'm³', 't']
+                        const isStandardEinheit = ['Stk.', 'm', 'm²', 'm³', 't'].includes(row.einheit)
+                        const isFreiWählbarEinheitValue = row.einheit && !isStandardEinheit && row.einheit !== '__FREI__'
+                        const selectValue = isStandardEinheit ? row.einheit : (isFreiWählbarEinheitValue ? '__FREI__' : (row.einheit === '__FREI__' ? '__FREI__' : ''))
 
                         return (
                           <>
@@ -652,7 +652,7 @@ function Tagesbericht() {
                               value={selectValue}
                               onChange={(e) => {
                                 if (e.target.value === '__FREI__') {
-                                  handleMaterialChange(row.id, 'einheit', '')
+                                  handleMaterialChange(row.id, 'einheit', '__FREI__')
                                 } else if (e.target.value === '') {
                                   handleMaterialChange(row.id, 'einheit', '')
                                 } else {
@@ -666,13 +666,13 @@ function Tagesbericht() {
                                 </option>
                               ))}
                             </select>
-                            {isFreiWählbarEinheit && (
+                            {(selectValue === '__FREI__' || isFreiWählbarEinheitValue) && (
                               <input
                                 type="text"
                                 className="table-input"
                                 style={{ marginTop: '0.25rem' }}
                                 placeholder="Freie Eingabe"
-                                value={row.einheit}
+                                value={row.einheit === '__FREI__' ? '' : row.einheit}
                                 onChange={(e) => handleMaterialChange(row.id, 'einheit', e.target.value)}
                               />
                             )}
