@@ -38,7 +38,6 @@ export interface TagesberichtData {
   arbeitsbeschreibungen: Array<{
     beschreibung: string
     mengeStd: string
-    bemerkung: string
   }>
   materialien: Array<{
     beschreibung: string
@@ -423,7 +422,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 4
   doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
   yPos += 4
-  doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
+  doc.text('Internet: www.rohrnetz-beil.de | E-mail: buero@rohrnetz-beil.de', 105, yPos, { align: 'center' })
   yPos += 4
   doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
   yPos += 6
@@ -555,14 +554,15 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 8
 
   if (data.arbeitsbeschreibungen && data.arbeitsbeschreibungen.length > 0) {
-    const tableHeaders = ['Beschreibung', 'Menge/Std.', 'Bemerkung']
-    const colPositions = [col1Start, col2Start, col3Start]
+    const tableHeaders = ['Beschreibung', 'Menge/Std.']
+    const colPositions = [col1Start, col2Start]
+    const arbeitsTableWidth = col1Width + col2Width
 
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
     doc.setFillColor(245, 245, 245)
     const headerHeight = 7
-    doc.rect(col1Start, yPos - 5, totalTableWidth, headerHeight, 'F')
+    doc.rect(col1Start, yPos - 5, arbeitsTableWidth, headerHeight, 'F')
     tableHeaders.forEach((header, i) => {
       doc.text(header, colPositions[i] + 2, yPos)
     })
@@ -570,7 +570,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
     doc.setFont('helvetica', 'normal')
     data.arbeitsbeschreibungen.forEach((row) => {
-      if (row.beschreibung || row.mengeStd || row.bemerkung) {
+      if (row.beschreibung || row.mengeStd) {
         if (yPos > 250) {
           doc.addPage()
           yPos = 20
@@ -581,10 +581,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           doc.text(line, col1Start + 2, yPos + (lineIdx * 3.5))
         })
         doc.text((row.mengeStd || '').substring(0, 15), col2Start + 2, yPos)
-        const bemerkungLines = doc.splitTextToSize(row.bemerkung || '', col3Width - 4)
-        bemerkungLines.slice(0, 2).forEach((line: string, lineIdx: number) => {
-          doc.text(line, col3Start + 2, yPos + (lineIdx * 3.5))
-        })
         yPos += Math.max(maxLines * 3.5, 4)
       }
     })
@@ -669,7 +665,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
   // Hinweistext unter den Unterschriften
   const confirmationText =
-    'Mit der Unterschrift des Mitarbeiters bestätigen wir, dass die Baustellensicherung ordnungsgemäß kontrolliert aufgestellt wurde.'
+    'Mit der Unterschrift des Mitarbeiters bestätigen wir, dass die Baustellensicherung ordnungsgemäß aufgestellt und kontrolliert wurde'
   doc.setFontSize(8)
   doc.setFont('helvetica', 'italic')
   const confirmationY = signatureY + signatureHeight + 8

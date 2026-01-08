@@ -176,20 +176,15 @@
   width: calc(40% - 25px);
 }
 
-/* Spezifische Spaltenbreiten für Arbeitsbezeichnung (4 Spalten) */
+/* Spezifische Spaltenbreiten für Arbeitsbezeichnung (3 Spalten) */
 .arbeitsbeschreibung-table-arbeits th:nth-child(1),
 .arbeitsbeschreibung-table-arbeits td:nth-child(1) {
-  width: calc(65% - 16.67px);
+  width: calc(80% - 25px);
 }
 
 .arbeitsbeschreibung-table-arbeits th:nth-child(2),
 .arbeitsbeschreibung-table-arbeits td:nth-child(2) {
-  width: calc(10% - 16.67px);
-}
-
-.arbeitsbeschreibung-table-arbeits th:nth-child(3),
-.arbeitsbeschreibung-table-arbeits td:nth-child(3) {
-  width: calc(25% - 16.67px);
+  width: calc(20% - 25px);
 }
 
 /* Spezifische Spaltenbreiten für Material-Tabelle (4 Spalten) */

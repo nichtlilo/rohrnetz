@@ -18,7 +18,6 @@ interface ArbeitsbeschreibungRow {
   id: string
   beschreibung: string
   mengeStd: string
-  bemerkung: string
 }
 
 interface MaterialRow {
@@ -92,8 +91,7 @@ function Tagesbericht() {
     arbeitsbeschreibungen: [{
       id: '1',
       beschreibung: '',
-      mengeStd: '',
-      bemerkung: ''
+      mengeStd: ''
     }],
     materialien: [{
       id: '1',
@@ -192,8 +190,7 @@ function Tagesbericht() {
       arbeitsbeschreibungen: [...prev.arbeitsbeschreibungen, {
         id: Date.now().toString(),
         beschreibung: '',
-        mengeStd: '',
-        bemerkung: ''
+        mengeStd: ''
       }]
     }))
   }
@@ -437,21 +434,29 @@ function Tagesbericht() {
                           return ['Kipper', 'LKW bis 7,5t', 'Container'].includes(name)
                         }
 
-                        const buildMengenOptionen = (max: number) => {
+                        const buildMengenOptionen = (max: number, isKm: boolean) => {
                           const options: string[] = ['']
-                          for (let v = 0.5; v <= max; v += 0.5) {
-                            const isHalf = v % 1 !== 0
-                            const formattedValue = isHalf
-                              ? `${v}`.replace('.', ',')
-                              : `${v},0`
-                            options.push(formattedValue)
+                          if (isKm) {
+                            // 5km Schritte bis 100km
+                            for (let v = 5; v <= max; v += 5) {
+                              options.push(String(v))
+                            }
+                          } else {
+                            // 0.5 Schritte für Stunden
+                            for (let v = 0.5; v <= max; v += 0.5) {
+                              const isHalf = v % 1 !== 0
+                              const formattedValue = isHalf
+                                ? `${v}`.replace('.', ',')
+                                : `${v},0`
+                              options.push(formattedValue)
+                            }
                           }
                           return options
                         }
 
                         const isKm = isKilometerGerät(row.gerät)
                         const max = isKm ? 100 : 8
-                        const options = buildMengenOptionen(max)
+                        const options = buildMengenOptionen(max, isKm)
 
                         return (
                           <select
@@ -505,7 +510,6 @@ function Tagesbericht() {
                 <tr>
                   <th>Beschreibung</th>
                   <th>Menge/Std.</th>
-                  <th>Bemerkung</th>
                   <th></th>
                 </tr>
               </thead>
@@ -528,15 +532,6 @@ function Tagesbericht() {
                         placeholder="Menge"
                         value={row.mengeStd}
                         onChange={(e) => handleArbeitsbeschreibungChange(row.id, 'mengeStd', e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="Bemerkung"
-                        value={row.bemerkung}
-                        onChange={(e) => handleArbeitsbeschreibungChange(row.id, 'bemerkung', e.target.value)}
                       />
                     </td>
                     <td>
@@ -625,7 +620,7 @@ function Tagesbericht() {
                             >
                               {options.map(opt => (
                                 <option key={opt} value={opt}>
-                                  {opt === '' ? 'Menge wählen' : opt === '__FREI__' ? 'Frei wählbar' : `${opt} Stk.`}
+                                  {opt === '' ? 'Menge wählen' : opt === '__FREI__' ? 'Frei wählbar' : opt}
                                 </option>
                               ))}
                             </select>
