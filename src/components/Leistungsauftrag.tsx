@@ -54,6 +54,7 @@ interface LeistungsauftragData {
   rgEmpfaenger: string
   email: string
   datum: string
+  wochentag: string
   monteur: string
   telefonNr: string
   blockschrift: string
@@ -64,12 +65,37 @@ interface LeistungsauftragData {
 }
 
 function Leistungsauftrag() {
+  // Funktion zum Ermitteln des Wochentags
+  const getWochentag = (dateString: string): string => {
+    if (!dateString) return ''
+    const parts = dateString.split('.')
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1
+      const year = parseInt(parts[2], 10)
+      const date = new Date(year, month, day)
+      const wochentage = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+      return wochentage[date.getDay()]
+    }
+    return ''
+  }
+
+  // Aktuelles Datum formatieren
+  const getCurrentDate = (): string => {
+    const today = new Date()
+    const day = String(today.getDate()).padStart(2, '0')
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const year = today.getFullYear()
+    return `${day}.${month}.${year}`
+  }
+
   const [formData, setFormData] = useState<LeistungsauftragData>({
     einsatzort: '',
     artDerArbeit: '',
     rgEmpfaenger: '',
     email: '',
-    datum: '',
+    datum: getCurrentDate(),
+    wochentag: getWochentag(getCurrentDate()),
     monteur: '',
     telefonNr: '',
     blockschrift: '',
@@ -177,13 +203,29 @@ function Leistungsauftrag() {
     return dateString
   }
 
+  // Wochentag automatisch aktualisieren, wenn Datum geändert wird
+  useEffect(() => {
+    if (formData.datum) {
+      const wochentag = getWochentag(formData.datum)
+      if (wochentag && formData.wochentag !== wochentag) {
+        setFormData(prev => ({ ...prev, wochentag }))
+      }
+    }
+  }, [formData.datum])
+
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dateValue = e.target.value
     if (dateValue) {
       const formattedDate = formatDateForDisplay(dateValue)
       handleInputChange('datum', formattedDate)
+      // Wochentag automatisch aktualisieren
+      const wochentag = getWochentag(formattedDate)
+      if (wochentag) {
+        handleInputChange('wochentag', wochentag)
+      }
     } else {
       handleInputChange('datum', '')
+      handleInputChange('wochentag', '')
     }
   }
 
@@ -603,6 +645,19 @@ function Leistungsauftrag() {
             </div>
           </div>
 
+          <div className="form-group">
+            <label className="form-label">Wochentag</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Wochentag"
+              value={formData.wochentag}
+              onChange={(e) => handleInputChange('wochentag', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
           <div className="form-group">
             <label className="form-label">Monteur</label>
             <input

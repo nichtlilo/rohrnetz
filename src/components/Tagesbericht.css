@@ -202,19 +202,28 @@
 }
 
 /* Spezifische Spaltenbreiten für Material-Tabelle (4 Spalten) */
+.arbeitsbeschreibung-table-material {
+  table-layout: fixed;
+}
+
 .arbeitsbeschreibung-table-material th:nth-child(1),
 .arbeitsbeschreibung-table-material td:nth-child(1) {
-  width: calc(50% - 16.67px);
+  width: 65% !important;
+  min-width: 65% !important;
 }
 
 .arbeitsbeschreibung-table-material th:nth-child(2),
 .arbeitsbeschreibung-table-material td:nth-child(2) {
-  width: calc(20% - 16.67px);
+  width: 15% !important;
+  min-width: 15% !important;
+  max-width: 15% !important;
 }
 
 .arbeitsbeschreibung-table-material th:nth-child(3),
 .arbeitsbeschreibung-table-material td:nth-child(3) {
-  width: calc(30% - 16.67px);
+  width: 20% !important;
+  min-width: 20% !important;
+  max-width: 20% !important;
 }
 
 .table-input {
@@ -314,7 +323,6 @@
 .btn-asana-form {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
   background-color: #F06A6A;
@@ -324,7 +332,7 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  margin-top: 2rem;
+  margin-top: 0;
   transition: background-color 0.2s;
 }
 

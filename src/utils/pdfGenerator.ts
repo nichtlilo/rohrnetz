@@ -7,6 +7,7 @@ export interface LeistungsauftragData {
   rgEmpfaenger: string
   email: string
   datum: string
+  wochentag: string
   monteur: string
   telefonNr: string
   blockschrift: string
@@ -127,11 +128,14 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setTextColor(25, 118, 210)
   doc.text('Leistungsauftrag', 20, yPos)
   
-  // Datum rechts neben dem Titel
+  // Datum und Wochentag rechts neben dem Titel
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
   doc.text(`Datum: ${data.datum || '-'}`, 170, yPos, { align: 'right' })
+  if (data.wochentag) {
+    doc.text(`Wochentag: ${data.wochentag}`, 170, yPos + 5, { align: 'right' })
+  }
   
   yPos += 10
 
@@ -481,9 +485,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 170)
-  doc.text(artDerArbeitLines, 20, yPos)
-  yPos += artDerArbeitLines.length * 4 + 8
+  const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 160)
+  artDerArbeitLines.forEach((line: string, index: number) => {
+    doc.text(line, 20, yPos + (index * 4.5))
+  })
+  yPos += artDerArbeitLines.length * 4.5 + 8
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
@@ -501,7 +507,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 8
 
   const isKilometerGerät = (name: string) => {
-    return ['Kipper', 'LKW bis 7,5t', 'Container'].includes(name)
+    return ['Kipper/Montage', 'LKW bis 7,5t', 'Container'].includes(name)
   }
 
   if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.menge)) {

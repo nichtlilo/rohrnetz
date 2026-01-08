@@ -4,7 +4,7 @@ import { generateTagesberichtPDF } from '../utils/pdfGenerator'
 import './Tagesbericht.css'
 
 const GERÄTE_OPTIONEN = [
-  'Kipper',
+  'Kipper/Montage',
   'LKW bis 7,5t',
   'Container',
   'Minibagger',
@@ -431,7 +431,7 @@ function Tagesbericht() {
                     <td>
                       {(() => {
                         const isKilometerGerät = (name: string) => {
-                          return ['Kipper', 'LKW bis 7,5t', 'Container'].includes(name)
+                          return ['Kipper/Montage', 'LKW bis 7,5t', 'Container'].includes(name)
                         }
 
                         const buildMengenOptionen = (max: number, isKm: boolean) => {
