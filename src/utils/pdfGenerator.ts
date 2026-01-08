@@ -475,17 +475,23 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Tel.Nr.:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text(data.telefonNr || '-', 50, yPos)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Monteur/Arbeitszeit:', 100, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.monteurArbeitszeit || '-').substring(0, 30), 150, yPos)
   yPos += 5
 
+  // Monteur/Arbeitszeit - eigene Zeile
+  doc.setFont('helvetica', 'bold')
+  doc.text('Monteur/Arbeitszeit:', 20, yPos)
+  doc.setFont('helvetica', 'normal')
+  const monteurLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 170)
+  monteurLines.forEach((line: string, index: number) => {
+    doc.text(line, 20, yPos + (index * 4.5))
+  })
+  yPos += monteurLines.length * 4.5 + 5
+
+  // Art der Arbeit - eigene Zeile
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 160)
+  const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 170)
   artDerArbeitLines.forEach((line: string, index: number) => {
     doc.text(line, 20, yPos + (index * 4.5))
   })
