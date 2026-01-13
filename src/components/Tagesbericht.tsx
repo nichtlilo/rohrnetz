@@ -31,6 +31,7 @@ interface GerätRow {
   id: string
   gerät: string
   menge: string
+  bemerkung: string
 }
 
 interface TagesberichtData {
@@ -86,7 +87,8 @@ function Tagesbericht() {
     geräte: [{
       id: '1',
       gerät: '',
-      menge: ''
+      menge: '',
+      bemerkung: ''
     }],
     arbeitsbeschreibungen: [{
       id: '1',
@@ -245,7 +247,8 @@ function Tagesbericht() {
       geräte: [...prev.geräte, {
         id: Date.now().toString(),
         gerät: '',
-        menge: ''
+        menge: '',
+        bemerkung: ''
       }]
     }))
   }
@@ -408,6 +411,7 @@ function Tagesbericht() {
                 <tr>
                   <th>Gerät</th>
                   <th>Kilometer / Stunden</th>
+                  <th>Bemerkung</th>
                   <th></th>
                 </tr>
               </thead>
@@ -474,6 +478,15 @@ function Tagesbericht() {
                           </select>
                         )
                       })()}
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="table-input"
+                        placeholder="Bemerkung"
+                        value={row.bemerkung}
+                        onChange={(e) => handleGerätChange(row.id, 'bemerkung', e.target.value)}
+                      />
                     </td>
                     <td>
                       <button
@@ -567,24 +580,15 @@ function Tagesbericht() {
             <table className="arbeitsbeschreibung-table arbeitsbeschreibung-table-material">
               <thead>
                 <tr>
-                  <th>Material/Beschreibung</th>
                   <th>Menge</th>
                   <th>Einheit</th>
+                  <th>Material/Beschreibung</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {formData.materialien.map((row) => (
                   <tr key={row.id}>
-                    <td>
-                      <input
-                        type="text"
-                        className="table-input"
-                        placeholder="Material/Beschreibung"
-                        value={row.beschreibung}
-                        onChange={(e) => handleMaterialChange(row.id, 'beschreibung', e.target.value)}
-                      />
-                    </td>
                     <td>
                       {(() => {
                         const buildMengeOptionen = () => {
@@ -662,7 +666,7 @@ function Tagesbericht() {
                             >
                               {einheitOptionen.map(opt => (
                                 <option key={opt} value={opt}>
-                                  {opt === '' ? 'Einheit wählen' : opt === '__FREI__' ? 'Frei wählbar' : opt}
+                                  {opt === '' ? 'Einheit' : opt === '__FREI__' ? 'Frei wählbar' : opt}
                                 </option>
                               ))}
                             </select>
@@ -679,6 +683,15 @@ function Tagesbericht() {
                           </>
                         )
                       })()}
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="table-input"
+                        placeholder="Material/Beschreibung"
+                        value={row.beschreibung}
+                        onChange={(e) => handleMaterialChange(row.id, 'beschreibung', e.target.value)}
+                      />
                     </td>
                     <td>
                       <button

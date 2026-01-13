@@ -35,6 +35,7 @@ export interface TagesberichtData {
   geräte: Array<{
     gerät: string
     menge: string
+    bemerkung: string
   }>
   arbeitsbeschreibungen: Array<{
     beschreibung: string
@@ -455,6 +456,12 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 5
 
   doc.setFont('helvetica', 'bold')
+  doc.text('Tel.Nr.:', 20, yPos)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.telefonNr || '-', 50, yPos)
+  yPos += 5
+
+  doc.setFont('helvetica', 'bold')
   doc.text('Auftraggeber:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text((data.auftraggeber || '-').substring(0, 30), 50, yPos)
@@ -471,15 +478,10 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text((data.strasseHausNr || '-').substring(0, 25), 150, yPos)
   yPos += 5
 
-  doc.setFont('helvetica', 'bold')
-  doc.text('Tel.Nr.:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.telefonNr || '-', 50, yPos)
-  yPos += 5
-
   // Monteur/Arbeitszeit - eigene Zeile
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur/Arbeitszeit:', 20, yPos)
+  yPos += 5
   doc.setFont('helvetica', 'normal')
   const monteurLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 170)
   monteurLines.forEach((line: string, index: number) => {
@@ -490,6 +492,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   // Art der Arbeit - eigene Zeile
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
+  yPos += 5
   doc.setFont('helvetica', 'normal')
   const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 170)
   artDerArbeitLines.forEach((line: string, index: number) => {
@@ -499,12 +502,15 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
-  const col1Width = 110
+  const col1Width = 80
   const col2Start = col1Start + col1Width  // Zweite Spalte (Kilometer/Menge/Std.)
   const col2Width = 30
   const col3Start = col2Start + col2Width  // Dritte Spalte (Bemerkung/Einheit)
   const col3Width = 30
+  const col4Start = col3Start + col3Width  // Vierte Spalte (für Geräte Bemerkung)
+  const col4Width = 30
   const totalTableWidth = col1Width + col2Width + col3Width
+  const geräteTableWidth = col1Width + col2Width + col3Width + col4Width
 
   // Equipment - als Tabelle
   doc.setFont('helvetica', 'bold')
@@ -516,15 +522,15 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     return ['Kipper/Montage', 'LKW bis 7,5t', 'Container'].includes(name)
   }
 
-  if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.menge)) {
-    const tableHeaders = ['Gerät', 'Menge (km/h)', '']
-    const colPositions = [col1Start, col2Start, col3Start]
+  if (data.geräte && data.geräte.length > 0 && data.geräte.some(g => g.gerät || g.menge || g.bemerkung)) {
+    const tableHeaders = ['Gerät', 'Menge (km/h)', 'Bemerkung', '']
+    const colPositions = [col1Start, col2Start, col3Start, col4Start]
 
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
     doc.setFillColor(245, 245, 245)
     const headerHeight = 7
-    doc.rect(col1Start, yPos - 5, totalTableWidth, headerHeight, 'F')
+    doc.rect(col1Start, yPos - 5, geräteTableWidth, headerHeight, 'F')
     tableHeaders.forEach((header, i) => {
       doc.text(header, colPositions[i] + 2, yPos)
     })
@@ -532,7 +538,7 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
     doc.setFont('helvetica', 'normal')
     data.geräte.forEach((row) => {
-      if (row.gerät || row.menge) {
+      if (row.gerät || row.menge || row.bemerkung) {
         if (yPos > 250) {
           doc.addPage()
           yPos = 20
@@ -543,9 +549,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           : '-'
 
         // Gerät
-        doc.text((row.gerät || '').substring(0, 30), colPositions[0] + 2, yPos)
+        doc.text((row.gerät || '').substring(0, 25), colPositions[0] + 2, yPos)
         // Menge (km/h)
         doc.text(mengeText, colPositions[1] + 2, yPos)
+        // Bemerkung
+        doc.text((row.bemerkung || '').substring(0, 20), colPositions[2] + 2, yPos)
 
         yPos += 4
       }
@@ -607,8 +615,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   yPos += 8
 
   if (data.materialien && data.materialien.length > 0 && data.materialien.some(m => m.beschreibung || m.menge || m.einheit)) {
-    const tableHeaders = ['Material/Beschreibung', 'Menge', 'Einheit']
-    const colPositions = [col1Start, col2Start, col3Start]
+    const tableHeaders = ['Menge', 'Einheit', 'Material/Beschreibung']
+    const mengeColWidth = 20
+    const einheitColWidth = 20
+    const beschreibungColStart = col1Start + mengeColWidth + einheitColWidth
+    const beschreibungColWidth = col1Width + col2Width + col3Width - mengeColWidth - einheitColWidth
     const materialTableWidth = col1Width + col2Width + col3Width
 
     doc.setFontSize(8)
@@ -616,9 +627,9 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     doc.setFillColor(245, 245, 245)
     const headerHeight = 7
     doc.rect(col1Start, yPos - 5, materialTableWidth, headerHeight, 'F')
-    tableHeaders.forEach((header, i) => {
-      doc.text(header, colPositions[i] + 2, yPos)
-    })
+    doc.text(tableHeaders[0], col1Start + 2, yPos)
+    doc.text(tableHeaders[1], col1Start + mengeColWidth + 2, yPos)
+    doc.text(tableHeaders[2], beschreibungColStart + 2, yPos)
     yPos += headerHeight
 
     doc.setFont('helvetica', 'normal')
@@ -628,9 +639,12 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
           doc.addPage()
           yPos = 20
         }
-        doc.text((material.beschreibung || '-').substring(0, 40), col1Start + 2, yPos)
-        doc.text(material.menge && material.menge !== '__FREI__' ? material.menge : '-', col2Start + 2, yPos)
-        doc.text(material.einheit && material.einheit !== '__FREI__' ? material.einheit : '-', col3Start + 2, yPos)
+        // Menge (klein, links)
+        doc.text(material.menge && material.menge !== '__FREI__' ? material.menge.substring(0, 8) : '-', col1Start + 2, yPos)
+        // Einheit (klein, mitte)
+        doc.text(material.einheit && material.einheit !== '__FREI__' ? material.einheit.substring(0, 8) : '-', col1Start + mengeColWidth + 2, yPos)
+        // Beschreibung (groß, rechts)
+        doc.text((material.beschreibung || '-').substring(0, 50), beschreibungColStart + 2, yPos)
         yPos += 4
       }
     })

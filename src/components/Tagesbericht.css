@@ -165,15 +165,36 @@
   padding-right: 0.25rem;
 }
 
-/* Spezifische Spaltenbreiten für Geräte-Tabelle (3 Spalten) */
+/* Spezifische Spaltenbreiten für Geräte-Tabelle (4 Spalten) */
+.arbeitsbeschreibung-table-geräte {
+  table-layout: fixed;
+}
+
 .arbeitsbeschreibung-table-geräte th:nth-child(1),
 .arbeitsbeschreibung-table-geräte td:nth-child(1) {
-  width: calc(60% - 25px);
+  width: 40% !important;
+  min-width: 40% !important;
 }
 
 .arbeitsbeschreibung-table-geräte th:nth-child(2),
 .arbeitsbeschreibung-table-geräte td:nth-child(2) {
-  width: calc(40% - 25px);
+  width: 25% !important;
+  min-width: 25% !important;
+  max-width: 25% !important;
+}
+
+.arbeitsbeschreibung-table-geräte th:nth-child(3),
+.arbeitsbeschreibung-table-geräte td:nth-child(3) {
+  width: 25% !important;
+  min-width: 25% !important;
+  max-width: 25% !important;
+}
+
+.arbeitsbeschreibung-table-geräte th:nth-child(4),
+.arbeitsbeschreibung-table-geräte td:nth-child(4) {
+  width: 10% !important;
+  min-width: 10% !important;
+  max-width: 10% !important;
 }
 
 /* Spezifische Spaltenbreiten für Arbeitsbezeichnung (3 Spalten) */
@@ -208,22 +229,22 @@
 
 .arbeitsbeschreibung-table-material th:nth-child(1),
 .arbeitsbeschreibung-table-material td:nth-child(1) {
-  width: 65% !important;
-  min-width: 65% !important;
+  width: 12% !important;
+  min-width: 12% !important;
+  max-width: 12% !important;
 }
 
 .arbeitsbeschreibung-table-material th:nth-child(2),
 .arbeitsbeschreibung-table-material td:nth-child(2) {
-  width: 15% !important;
-  min-width: 15% !important;
-  max-width: 15% !important;
+  width: 13% !important;
+  min-width: 13% !important;
+  max-width: 13% !important;
 }
 
 .arbeitsbeschreibung-table-material th:nth-child(3),
 .arbeitsbeschreibung-table-material td:nth-child(3) {
-  width: 20% !important;
-  min-width: 20% !important;
-  max-width: 20% !important;
+  width: 65% !important;
+  min-width: 65% !important;
 }
 
 .table-input {
