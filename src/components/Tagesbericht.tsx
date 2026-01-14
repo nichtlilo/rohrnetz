@@ -379,7 +379,7 @@ function Tagesbericht() {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Monteur/Arbeitszeit</label>
+          <label className="form-label">Monteur</label>
           <input
             type="text"
             className="form-input"
@@ -606,6 +606,7 @@ function Tagesbericht() {
                         const numValue = row.menge && !isNaN(Number(row.menge)) && Number(row.menge) >= 1 && Number(row.menge) <= 20
                         const isFreiWählbarValue = row.menge && !numValue && row.menge !== '__FREI__'
                         const selectValue = numValue ? row.menge : (isFreiWählbarValue ? '__FREI__' : (row.menge === '__FREI__' ? '__FREI__' : ''))
+                        const showInputField = selectValue === '__FREI__' || isFreiWählbarValue || numValue
 
                         return (
                           <>
@@ -624,16 +625,16 @@ function Tagesbericht() {
                             >
                               {options.map(opt => (
                                 <option key={opt} value={opt}>
-                                  {opt === '' ? 'Menge wählen' : opt === '__FREI__' ? 'Frei wählbar' : opt}
+                                  {opt === '' ? 'Menge' : opt === '__FREI__' ? 'Frei wählbar' : opt}
                                 </option>
                               ))}
                             </select>
-                            {(selectValue === '__FREI__' || isFreiWählbarValue) && (
+                            {showInputField && (
                               <input
                                 type="text"
                                 className="table-input"
                                 style={{ marginTop: '0.25rem' }}
-                                placeholder="Freie Eingabe"
+                                placeholder={numValue ? "Wert bearbeiten" : "Freie Eingabe"}
                                 value={row.menge === '__FREI__' ? '' : row.menge}
                                 onChange={(e) => handleMaterialChange(row.id, 'menge', e.target.value)}
                               />

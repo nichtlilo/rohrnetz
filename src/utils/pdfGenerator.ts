@@ -459,6 +459,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Tel.Nr.:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text(data.telefonNr || '-', 50, yPos)
+  
+  doc.setFont('helvetica', 'bold')
+  doc.text('Straße/Haus-Nr.:', 100, yPos)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.strasseHausNr || '-').substring(0, 25), 130, yPos)
   yPos += 5
 
   doc.setFont('helvetica', 'bold')
@@ -471,34 +476,21 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Ort:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text((data.ort || '-').substring(0, 25), 50, yPos)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Straße/Haus-Nr.:', 100, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.strasseHausNr || '-').substring(0, 25), 150, yPos)
   yPos += 5
 
-  // Monteur/Arbeitszeit - eigene Zeile
+  // Monteur - zweispaltig wie die anderen Felder
   doc.setFont('helvetica', 'bold')
-  doc.text('Monteur/Arbeitszeit:', 20, yPos)
-  yPos += 5
+  doc.text('Monteur:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  const monteurLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 170)
-  monteurLines.forEach((line: string, index: number) => {
-    doc.text(line, 20, yPos + (index * 4.5))
-  })
-  yPos += monteurLines.length * 4.5 + 5
+  doc.text((data.monteurArbeitszeit || '-').substring(0, 50), 50, yPos)
+  yPos += 5
 
-  // Art der Arbeit - eigene Zeile
+  // Art der Arbeit - zweispaltig wie die anderen Felder
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
-  yPos += 5
   doc.setFont('helvetica', 'normal')
-  const artDerArbeitLines = doc.splitTextToSize(data.artDerArbeit || '-', 170)
-  artDerArbeitLines.forEach((line: string, index: number) => {
-    doc.text(line, 20, yPos + (index * 4.5))
-  })
-  yPos += artDerArbeitLines.length * 4.5 + 8
+  doc.text((data.artDerArbeit || '-').substring(0, 50), 50, yPos)
+  yPos += 12
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
