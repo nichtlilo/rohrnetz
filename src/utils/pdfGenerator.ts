@@ -501,7 +501,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   const col3Width = 30
   const col4Start = col3Start + col3Width  // Vierte Spalte (für Geräte Bemerkung)
   const col4Width = 30
-  const totalTableWidth = col1Width + col2Width + col3Width
   const geräteTableWidth = col1Width + col2Width + col3Width + col4Width
 
   // Equipment - als Tabelle
@@ -611,7 +610,6 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
     const mengeColWidth = 20
     const einheitColWidth = 20
     const beschreibungColStart = col1Start + mengeColWidth + einheitColWidth
-    const beschreibungColWidth = col1Width + col2Width + col3Width - mengeColWidth - einheitColWidth
     const materialTableWidth = col1Width + col2Width + col3Width
 
     doc.setFontSize(8)
