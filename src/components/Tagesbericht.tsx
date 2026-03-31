@@ -280,14 +280,12 @@ function Tagesbericht() {
     if (!isFilled(formData.auftraggeber)) missing.push('Auftraggeber')
     if (!isFilled(formData.ort)) missing.push('Ort')
     if (!isFilled(formData.strasseHausNr)) missing.push('Straße/Haus-Nr.')
-    if (!isFilled(formData.telefonNr)) missing.push('Tel.Nr.')
     if (!isFilled(formData.monteurArbeitszeit)) missing.push('Monteur')
     if (!isFilled(formData.artDerArbeit)) missing.push('Art der Arbeit')
 
     formData.geräte.forEach((row, index) => {
       if (!isFilled(row.gerät)) missing.push(`Geräte und Maschinen: Gerät (Zeile ${index + 1})`)
       if (!isFilled(row.menge)) missing.push(`Geräte und Maschinen: Kilometer/Stunden (Zeile ${index + 1})`)
-      if (!isFilled(row.bemerkung)) missing.push(`Geräte und Maschinen: Bemerkung (Zeile ${index + 1})`)
     })
 
     formData.arbeitsbeschreibungen.forEach((row, index) => {
@@ -372,9 +370,7 @@ function Tagesbericht() {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">
-              Tel.Nr. <span className="required">*</span>
-            </label>
+            <label className="form-label">Tel.Nr.</label>
             <input
               type="text"
               className="form-input"

@@ -296,11 +296,9 @@ function Leistungsauftrag() {
     if (!isFilled(formData.einsatzort)) missing.push('Einsatzort')
     if (!isFilled(formData.artDerArbeit)) missing.push('Art der Arbeit')
     if (!isFilled(formData.rgEmpfaenger)) missing.push('RG - Empfänger')
-    if (!isFilled(formData.email)) missing.push('E-Mail')
     if (!isFilled(formData.datum)) missing.push('Datum')
     if (!isFilled(formData.wochentag)) missing.push('Wochentag')
     if (!isFilled(formData.monteur)) missing.push('Monteur')
-    if (!isFilled(formData.telefonNr)) missing.push('Telefon Nr.')
     if (!isFilled(formData.blockschrift)) missing.push('Blockschrift')
 
     formData.leistungen.forEach((row, index) => {
@@ -309,7 +307,6 @@ function Leistungsauftrag() {
       const hasMenge = isFilled(row.stundenStueck) || isFilled(row.m3m)
       if (!hasMenge) missing.push(`Leistung: Menge (Zeile ${index + 1})`)
 
-      if (!isFilled(row.bemerkung)) missing.push(`Leistung: Bemerkung (Zeile ${index + 1})`)
     })
 
     if (!isFilled(formData.kundeSignatur)) missing.push('Unterschrift Kunde')
@@ -375,9 +372,7 @@ function Leistungsauftrag() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">
-              E-Mail <span className="required">*</span>
-            </label>
+            <label className="form-label">E-Mail</label>
             <input
               type="email"
               className="form-input"
@@ -713,9 +708,7 @@ function Leistungsauftrag() {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">
-              Telefon Nr. <span className="required">*</span>
-            </label>
+            <label className="form-label">Telefon Nr.</label>
             <input
               type="text"
               className="form-input"
