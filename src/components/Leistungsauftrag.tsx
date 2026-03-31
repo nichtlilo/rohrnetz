@@ -302,7 +302,6 @@ function Leistungsauftrag() {
     if (!isFilled(formData.monteur)) missing.push('Monteur')
     if (!isFilled(formData.telefonNr)) missing.push('Telefon Nr.')
     if (!isFilled(formData.blockschrift)) missing.push('Blockschrift')
-    if (!isFilled(formData.sonstiges)) missing.push('Sonstiges')
 
     formData.leistungen.forEach((row, index) => {
       if (!isFilled(row.beschreibung)) missing.push(`Leistung: Beschreibung (Zeile ${index + 1})`)
@@ -781,7 +780,7 @@ function Leistungsauftrag() {
         </div>
 
         <div className="form-section">
-          <h3 className="form-section-title">Sonstiges <span className="required">*</span></h3>
+          <h3 className="form-section-title">Sonstiges</h3>
           <textarea
             className="form-textarea"
             placeholder="Weitere Bemerkungen..."

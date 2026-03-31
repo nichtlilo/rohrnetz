@@ -470,12 +470,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text('Auftraggeber:', 20, yPos)
   doc.setFont('helvetica', 'normal')
   doc.text((data.auftraggeber || '-').substring(0, 30), 50, yPos)
-  yPos += 5
-
+  
   doc.setFont('helvetica', 'bold')
-  doc.text('Ort:', 20, yPos)
+  doc.text('Ort:', 100, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.ort || '-').substring(0, 25), 50, yPos)
+  doc.text((data.ort || '-').substring(0, 25), 130, yPos)
   yPos += 5
 
   // Monteur - zweispaltig wie die anderen Felder

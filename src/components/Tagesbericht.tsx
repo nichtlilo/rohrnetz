@@ -373,6 +373,34 @@ function Tagesbericht() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">
+              Tel.Nr. <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Telefonnummer"
+              value={formData.telefonNr}
+              onChange={(e) => handleInputChange('telefonNr', e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Straße/Haus-Nr. <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Straße und Hausnummer"
+              value={formData.strasseHausNr}
+              onChange={(e) => handleInputChange('strasseHausNr', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">
               Auftraggeber <span className="required">*</span>
             </label>
             <input
@@ -394,34 +422,6 @@ function Tagesbericht() {
               placeholder="Ort"
               value={formData.ort}
               onChange={(e) => handleInputChange('ort', e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">
-              Straße/Haus-Nr. <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Straße und Hausnummer"
-              value={formData.strasseHausNr}
-              onChange={(e) => handleInputChange('strasseHausNr', e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">
-              Tel.Nr. <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Telefonnummer"
-              value={formData.telefonNr}
-              onChange={(e) => handleInputChange('telefonNr', e.target.value)}
             />
           </div>
         </div>
