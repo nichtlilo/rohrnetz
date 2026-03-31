@@ -270,7 +270,49 @@ function Tagesbericht() {
     }
   }
 
+  const isFilled = (value: string) => value.trim() !== ''
+
+  const validateRequiredFields = (): string[] => {
+    const missing: string[] = []
+
+    if (!isFilled(formData.datum)) missing.push('Datum')
+    if (!isFilled(formData.wochentag)) missing.push('Wochentag')
+    if (!isFilled(formData.auftraggeber)) missing.push('Auftraggeber')
+    if (!isFilled(formData.ort)) missing.push('Ort')
+    if (!isFilled(formData.strasseHausNr)) missing.push('Straße/Haus-Nr.')
+    if (!isFilled(formData.telefonNr)) missing.push('Tel.Nr.')
+    if (!isFilled(formData.monteurArbeitszeit)) missing.push('Monteur')
+    if (!isFilled(formData.artDerArbeit)) missing.push('Art der Arbeit')
+
+    formData.geräte.forEach((row, index) => {
+      if (!isFilled(row.gerät)) missing.push(`Geräte und Maschinen: Gerät (Zeile ${index + 1})`)
+      if (!isFilled(row.menge)) missing.push(`Geräte und Maschinen: Kilometer/Stunden (Zeile ${index + 1})`)
+      if (!isFilled(row.bemerkung)) missing.push(`Geräte und Maschinen: Bemerkung (Zeile ${index + 1})`)
+    })
+
+    formData.arbeitsbeschreibungen.forEach((row, index) => {
+      if (!isFilled(row.beschreibung)) missing.push(`Arbeitsbezeichnung: Beschreibung (Zeile ${index + 1})`)
+      if (!isFilled(row.mengeStd)) missing.push(`Arbeitsbezeichnung: Menge/Std. (Zeile ${index + 1})`)
+    })
+
+    formData.materialien.forEach((row, index) => {
+      if (!isFilled(row.menge)) missing.push(`Materialverbrauch: Menge (Zeile ${index + 1})`)
+      if (!isFilled(row.einheit)) missing.push(`Materialverbrauch: Einheit (Zeile ${index + 1})`)
+      if (!isFilled(row.beschreibung)) missing.push(`Materialverbrauch: Material/Beschreibung (Zeile ${index + 1})`)
+    })
+
+    if (!isFilled(formData.kundeSignatur)) missing.push('Unterschrift Kunde')
+    if (!isFilled(formData.mitarbeiterSignatur)) missing.push('Unterschrift Mitarbeiter')
+
+    return missing
+  }
+
   const handleGeneratePDF = () => {
+    const missing = validateRequiredFields()
+    if (missing.length > 0) {
+      alert(`Bitte folgende Pflichtfelder ausfüllen:\n\n- ${missing.join('\n- ')}`)
+      return
+    }
     generateTagesberichtPDF(formData)
   }
 
@@ -315,7 +357,9 @@ function Tagesbericht() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Wochentag</label>
+            <label className="form-label">
+              Wochentag <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -356,7 +400,9 @@ function Tagesbericht() {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Straße/Haus-Nr.</label>
+            <label className="form-label">
+              Straße/Haus-Nr. <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -367,7 +413,9 @@ function Tagesbericht() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Tel.Nr.</label>
+            <label className="form-label">
+              Tel.Nr. <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -379,7 +427,9 @@ function Tagesbericht() {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Monteur</label>
+          <label className="form-label">
+            Monteur <span className="required">*</span>
+          </label>
           <input
             type="text"
             className="form-input"
@@ -390,7 +440,9 @@ function Tagesbericht() {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Art der Arbeit</label>
+          <label className="form-label">
+            Art der Arbeit <span className="required">*</span>
+          </label>
           <input
             type="text"
             className="form-input"
@@ -724,7 +776,7 @@ function Tagesbericht() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 11L12 14L22 4M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Unterschrift Kunde
+              Unterschrift Kunde <span className="required">*</span>
             </div>
             <div
               className="signature-pad-placeholder"
@@ -743,7 +795,7 @@ function Tagesbericht() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 11L12 14L22 4M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Unterschrift Mitarbeiter
+              Unterschrift Mitarbeiter <span className="required">*</span>
             </div>
             <div
               className="signature-pad-placeholder"

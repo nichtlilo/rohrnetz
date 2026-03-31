@@ -288,7 +288,43 @@ function Leistungsauftrag() {
     }
   }
 
+  const isFilled = (value: string) => value.trim() !== ''
+
+  const validateRequiredFields = (): string[] => {
+    const missing: string[] = []
+
+    if (!isFilled(formData.einsatzort)) missing.push('Einsatzort')
+    if (!isFilled(formData.artDerArbeit)) missing.push('Art der Arbeit')
+    if (!isFilled(formData.rgEmpfaenger)) missing.push('RG - Empfänger')
+    if (!isFilled(formData.email)) missing.push('E-Mail')
+    if (!isFilled(formData.datum)) missing.push('Datum')
+    if (!isFilled(formData.wochentag)) missing.push('Wochentag')
+    if (!isFilled(formData.monteur)) missing.push('Monteur')
+    if (!isFilled(formData.telefonNr)) missing.push('Telefon Nr.')
+    if (!isFilled(formData.blockschrift)) missing.push('Blockschrift')
+    if (!isFilled(formData.sonstiges)) missing.push('Sonstiges')
+
+    formData.leistungen.forEach((row, index) => {
+      if (!isFilled(row.beschreibung)) missing.push(`Leistung: Beschreibung (Zeile ${index + 1})`)
+
+      const hasMenge = isFilled(row.stundenStueck) || isFilled(row.m3m)
+      if (!hasMenge) missing.push(`Leistung: Menge (Zeile ${index + 1})`)
+
+      if (!isFilled(row.bemerkung)) missing.push(`Leistung: Bemerkung (Zeile ${index + 1})`)
+    })
+
+    if (!isFilled(formData.kundeSignatur)) missing.push('Unterschrift Kunde')
+    if (!isFilled(formData.mitarbeiterSignatur)) missing.push('Unterschrift Mitarbeiter')
+
+    return missing
+  }
+
   const handleGeneratePDF = () => {
+    const missing = validateRequiredFields()
+    if (missing.length > 0) {
+      alert(`Bitte folgende Pflichtfelder ausfüllen:\n\n- ${missing.join('\n- ')}`)
+      return
+    }
     generateLeistungsauftragPDF(formData)
   }
 
@@ -340,7 +376,9 @@ function Leistungsauftrag() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">E-Mail</label>
+            <label className="form-label">
+              E-Mail <span className="required">*</span>
+            </label>
             <input
               type="email"
               className="form-input"
@@ -646,7 +684,9 @@ function Leistungsauftrag() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Wochentag</label>
+            <label className="form-label">
+              Wochentag <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -659,7 +699,9 @@ function Leistungsauftrag() {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Monteur</label>
+            <label className="form-label">
+              Monteur <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -672,7 +714,9 @@ function Leistungsauftrag() {
 
         <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Telefon Nr.</label>
+            <label className="form-label">
+              Telefon Nr. <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -683,7 +727,9 @@ function Leistungsauftrag() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Blockschrift</label>
+            <label className="form-label">
+              Blockschrift <span className="required">*</span>
+            </label>
             <input
               type="text"
               className="form-input"
@@ -700,7 +746,7 @@ function Leistungsauftrag() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.2322 5.23223C15.7229 4.74158 16.3141 4.36045 16.9671 4.11175C17.6201 3.86305 18.3204 3.75241 19.0243 3.78667C19.7282 3.82092 20.4199 3.99929 21.0569 4.31122C21.6939 4.62315 22.2636 5.06261 22.7322 5.60388M15.2322 5.23223L18.7682 8.76823M15.2322 5.23223L12.8796 2.87963M18.7682 8.76823L21.1218 11.1218M18.7682 8.76823L21.1218 6.41464M21.1218 11.1218L21.4141 21.4141H12.1213M21.1218 11.1218L12.8796 2.87963M12.8796 2.87963L2.58578 2.58578M12.8796 2.87963L11.4644 4.29464" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Unterschrift Kunde
+              Unterschrift Kunde <span className="required">*</span>
             </div>
             <div
               className="signature-pad-placeholder"
@@ -719,7 +765,7 @@ function Leistungsauftrag() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M15.2322 5.23223C15.7229 4.74158 16.3141 4.36045 16.9671 4.11175C17.6201 3.86305 18.3204 3.75241 19.0243 3.78667C19.7282 3.82092 20.4199 3.99929 21.0569 4.31122C21.6939 4.62315 22.2636 5.06261 22.7322 5.60388M15.2322 5.23223L18.7682 8.76823M15.2322 5.23223L12.8796 2.87963M18.7682 8.76823L21.1218 11.1218M18.7682 8.76823L21.1218 6.41464M21.1218 11.1218L21.4141 21.4141H12.1213M21.1218 11.1218L12.8796 2.87963M12.8796 2.87963L2.58578 2.58578M12.8796 2.87963L11.4644 4.29464" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Unterschrift Mitarbeiter
+              Unterschrift Mitarbeiter <span className="required">*</span>
             </div>
             <div
               className="signature-pad-placeholder"
@@ -735,7 +781,7 @@ function Leistungsauftrag() {
         </div>
 
         <div className="form-section">
-          <h3 className="form-section-title">Sonstiges</h3>
+          <h3 className="form-section-title">Sonstiges <span className="required">*</span></h3>
           <textarea
             className="form-textarea"
             placeholder="Weitere Bemerkungen..."
