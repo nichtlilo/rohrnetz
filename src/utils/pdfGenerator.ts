@@ -365,7 +365,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const signatureWidth = 70
   const signatureHeight = 30
 
-  // Blockschrift (links, über Kunden-Unterschrift) und Monteur (rechts, über Mitarbeiter-Unterschrift) auf gleicher Höhe
+  // Blockschrift nur links über Kunden-Unterschrift
   const monteurBlockschriftY = signatureY - 8
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -373,14 +373,6 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text('Blockschrift:', 20, monteurBlockschriftY)
   doc.setFont('helvetica', 'normal')
   doc.text(data.blockschrift || '-', 20 + blockschriftLabelWidth + 2, monteurBlockschriftY)
-  
-  // Monteur rechts auf gleicher Höhe wie Blockschrift
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  const monteurLabelWidth = doc.getTextWidth('Monteur:')
-  doc.text('Monteur:', 110, monteurBlockschriftY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.monteur || '-', 110 + monteurLabelWidth + 2, monteurBlockschriftY)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
