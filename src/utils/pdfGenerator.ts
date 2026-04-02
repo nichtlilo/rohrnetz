@@ -144,49 +144,52 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information - einzeilig für Einsatzort, RG-Empfänger, Art der Arbeit
+  // Basic Information - zweispaltig wie im Tagesbericht
+  // (Telefonnummer steht dabei in der rechten Hälfte, Monteur ebenfalls im Kopf)
   const leftColX = 20
-  const labelWidth = 40
-  const valueStartLeft = leftColX + labelWidth
+  const rightColX = 100
   let currentRowY = yPos
 
-  // Zeile 1: Einsatzort (einzeilig)
+  // Zeile 1: Einsatzort (links) | RG - Empfänger (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('Einsatzort:', leftColX, currentRowY)
+  const einsatzLabel = 'Einsatzort:'
+  doc.text(einsatzLabel, leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  const einsatzortText = (data.einsatzort || '-').substring(0, 50) // Begrenzen auf eine Zeile
-  doc.text(einsatzortText, valueStartLeft, currentRowY)
+  doc.text((data.einsatzort || '-').substring(0, 40), leftColX + doc.getTextWidth(einsatzLabel) + 2, currentRowY)
+
+  doc.setFont('helvetica', 'bold')
+  const rgLabel = 'RG - Empfänger:'
+  doc.text(rgLabel, rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.rgEmpfaenger || '-').substring(0, 40), rightColX + doc.getTextWidth(rgLabel) + 2, currentRowY)
   currentRowY += 7
 
-  // Zeile 2: RG - Empfänger (einzeilig)
+  // Zeile 2: Art der Arbeit (links) | Telefon Nr. (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('RG - Empfänger:', leftColX, currentRowY)
+  const artLabel = 'Art der Arbeit:'
+  doc.text(artLabel, leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  const rgEmpfaengerText = (data.rgEmpfaenger || '-').substring(0, 50) // Begrenzen auf eine Zeile
-  doc.text(rgEmpfaengerText, valueStartLeft, currentRowY)
+  doc.text((data.artDerArbeit || '-').substring(0, 40), leftColX + doc.getTextWidth(artLabel) + 2, currentRowY)
+
+  doc.setFont('helvetica', 'bold')
+  const telLabel = 'Telefon Nr.:'
+  doc.text(telLabel, rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.telefonNr || '-').substring(0, 25), rightColX + doc.getTextWidth(telLabel) + 2, currentRowY)
   currentRowY += 7
 
-  // Zeile 3: Art der Arbeit (einzeilig)
+  // Zeile 3: Monteur (links) | E-Mail (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', leftColX, currentRowY)
+  const monteurLabel = 'Monteur:'
+  doc.text(monteurLabel, leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  const artDerArbeitText = (data.artDerArbeit || '-').substring(0, 50) // Begrenzen auf eine Zeile
-  doc.text(artDerArbeitText, valueStartLeft, currentRowY)
-  currentRowY += 7
+  doc.text((data.monteur || '-').substring(0, 40), leftColX + doc.getTextWidth(monteurLabel) + 2, currentRowY)
 
-  // Zeile 4: E-Mail | Telefon Nr. (zusammen in einer Zeile)
-  const rightColX = 105
-  const valueStartRight = rightColX + 40
   doc.setFont('helvetica', 'bold')
-  doc.text('E-Mail:', leftColX, currentRowY)
+  const emailLabel = 'E-Mail:'
+  doc.text(emailLabel, rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  const emailText = (data.email || '-').substring(0, 30)
-  doc.text(emailText, valueStartLeft, currentRowY)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.telefonNr || '-', valueStartRight, currentRowY)
+  doc.text((data.email || '-').substring(0, 30), rightColX + doc.getTextWidth(emailLabel) + 2, currentRowY)
   currentRowY += 5
 
   yPos = currentRowY + 8
@@ -484,12 +487,23 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.text((data.monteurArbeitszeit || '-').substring(0, 50), 50, yPos)
   yPos += 5
 
-  // Art der Arbeit - zweispaltig wie die anderen Felder
+  // Art der Arbeit - ohne harte Trunkierung (wrap bis zum rechten Rand)
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.artDerArbeit || '-').substring(0, 50), 50, yPos)
-  yPos += 12
+
+  const artText = data.artDerArbeit || '-'
+  const artX = 50
+  const rightMargin = 5
+  const artMaxWidth = 210 - artX - rightMargin
+  const artLines = doc.splitTextToSize(artText, artMaxWidth) as string[]
+  const lineHeight = 3.8
+
+  artLines.forEach((line, idx) => {
+    doc.text(line, artX, yPos + idx * lineHeight)
+  })
+
+  yPos += Math.max(12, artLines.length * lineHeight + 2)
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)

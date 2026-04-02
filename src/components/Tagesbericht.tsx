@@ -296,7 +296,6 @@ function Tagesbericht() {
     formData.materialien.forEach((row, index) => {
       if (!isFilled(row.menge)) missing.push(`Materialverbrauch: Menge (Zeile ${index + 1})`)
       if (!isFilled(row.einheit)) missing.push(`Materialverbrauch: Einheit (Zeile ${index + 1})`)
-      if (!isFilled(row.beschreibung)) missing.push(`Materialverbrauch: Material/Beschreibung (Zeile ${index + 1})`)
     })
 
     if (!isFilled(formData.kundeSignatur)) missing.push('Unterschrift Kunde')
