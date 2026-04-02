@@ -144,52 +144,54 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information - zweispaltig wie im Tagesbericht
-  // (Telefonnummer steht dabei in der rechten Hälfte, Monteur ebenfalls im Kopf)
+  // Basic Information - gleiche Anordnung wie im Tagesbericht
   const leftColX = 20
   const rightColX = 100
+  const leftValueX = 50
+  const rightValueX = 130
   let currentRowY = yPos
 
   // Zeile 1: Einsatzort (links) | RG - Empfänger (rechts)
   doc.setFont('helvetica', 'bold')
-  const einsatzLabel = 'Einsatzort:'
-  doc.text(einsatzLabel, leftColX, currentRowY)
+  doc.text('Einsatzort:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.einsatzort || '-').substring(0, 40), leftColX + doc.getTextWidth(einsatzLabel) + 2, currentRowY)
+  doc.text((data.einsatzort || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  const rgLabel = 'RG - Empfänger:'
-  doc.text(rgLabel, rightColX, currentRowY)
+  doc.text('RG - Empfänger:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.rgEmpfaenger || '-').substring(0, 40), rightColX + doc.getTextWidth(rgLabel) + 2, currentRowY)
+  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += 7
 
   // Zeile 2: Art der Arbeit (links) | Telefon Nr. (rechts)
   doc.setFont('helvetica', 'bold')
-  const artLabel = 'Art der Arbeit:'
-  doc.text(artLabel, leftColX, currentRowY)
+  doc.text('Art der Arbeit:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.artDerArbeit || '-').substring(0, 40), leftColX + doc.getTextWidth(artLabel) + 2, currentRowY)
+  doc.text((data.artDerArbeit || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  const telLabel = 'Telefon Nr.:'
-  doc.text(telLabel, rightColX, currentRowY)
+  doc.text('Telefon Nr.:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.telefonNr || '-').substring(0, 25), rightColX + doc.getTextWidth(telLabel) + 2, currentRowY)
+  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += 7
 
   // Zeile 3: Monteur (links) | E-Mail (rechts)
   doc.setFont('helvetica', 'bold')
-  const monteurLabel = 'Monteur:'
-  doc.text(monteurLabel, leftColX, currentRowY)
+  doc.text('Monteur:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.monteur || '-').substring(0, 40), leftColX + doc.getTextWidth(monteurLabel) + 2, currentRowY)
+  doc.text((data.monteur || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  const emailLabel = 'E-Mail:'
-  doc.text(emailLabel, rightColX, currentRowY)
+  doc.text('E-Mail:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.email || '-').substring(0, 30), rightColX + doc.getTextWidth(emailLabel) + 2, currentRowY)
+  doc.text((data.email || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += 7
+
+  // Zeile 4: Blockschrift (links)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Blockschrift:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.blockschrift || '-').substring(0, 30), leftValueX, currentRowY)
   currentRowY += 5
 
   yPos = currentRowY + 8
