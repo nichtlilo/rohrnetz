@@ -129,21 +129,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setTextColor(25, 118, 210)
   doc.text('Leistungsauftrag', 20, yPos)
   
-  // Datum und Wochentag in derselben rechten Spalte wie die Kopffelder
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(0, 0, 0)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Datum:', 100, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.datum || '-', 130, yPos)
-
-  doc.setFont('helvetica', 'bold')
-  doc.text('Wochentag:', 100, yPos + 5)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.wochentag || '-', 130, yPos + 5)
-  
-  yPos += 10
+  yPos += 7
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
@@ -155,48 +141,61 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const leftValueX = 50
   const rightValueX = 130
   let currentRowY = yPos
+  const rowHeight = 7
 
-  // Zeile 1: Einsatzort (links) | RG - Empfänger (rechts)
+  // Zeile 1: Einsatzort (links) | Datum (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Einsatzort:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.einsatzort || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  doc.text('RG - Empfänger:', rightColX, currentRowY)
+  doc.text('Datum:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += 7
+  doc.text((data.datum || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
 
-  // Zeile 2: Art der Arbeit (links) | Telefon Nr. (rechts)
+  // Zeile 2: Art der Arbeit (links) | Wochentag (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.artDerArbeit || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', rightColX, currentRowY)
+  doc.text('Wochentag:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += 7
+  doc.text((data.wochentag || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
 
-  // Zeile 3: Monteur (links) | E-Mail (rechts)
+  // Zeile 3: Monteur (links) | RG - Empfänger (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.monteur || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  doc.text('E-Mail:', rightColX, currentRowY)
+  doc.text('RG - Empfänger:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.email || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += 7
+  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
 
-  // Zeile 4: Blockschrift (links)
+  // Zeile 4: Blockschrift (links) | Telefon Nr. (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Blockschrift:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.blockschrift || '-').substring(0, 30), leftValueX, currentRowY)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Telefon Nr.:', rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
+
+  // Zeile 5: E-Mail (nur rechts)
+  doc.setFont('helvetica', 'bold')
+  doc.text('E-Mail:', rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.email || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += 5
 
   yPos = currentRowY + 8
