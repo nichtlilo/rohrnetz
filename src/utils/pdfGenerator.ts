@@ -129,14 +129,19 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setTextColor(25, 118, 210)
   doc.text('Leistungsauftrag', 20, yPos)
   
-  // Datum und Wochentag rechts neben dem Titel
+  // Datum und Wochentag in derselben rechten Spalte wie die Kopffelder
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
-  doc.text(`Datum: ${data.datum || '-'}`, 170, yPos, { align: 'right' })
-  if (data.wochentag) {
-    doc.text(`Wochentag: ${data.wochentag}`, 170, yPos + 5, { align: 'right' })
-  }
+  doc.setFont('helvetica', 'bold')
+  doc.text('Datum:', 100, yPos)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.datum || '-', 130, yPos)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Wochentag:', 100, yPos + 5)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.wochentag || '-', 130, yPos + 5)
   
   yPos += 10
 
