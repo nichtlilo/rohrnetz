@@ -131,17 +131,17 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   
   yPos += 7
 
-  doc.setFontSize(10)
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information - gleiche Grundlogik wie im Tagesbericht
+  // Basic Information - gleiche Anordnung und Dichte wie im Tagesbericht
   const leftColX = 20
   const rightColX = 100
   const leftValueX = 50
   const rightValueX = 130
   let currentRowY = yPos
-  const rowHeight = 7
+  const rowHeight = 5
 
   // Zeile 1: Datum (links) | Wochentag (rechts)
   doc.setFont('helvetica', 'bold')
@@ -155,45 +155,47 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text((data.wochentag || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += rowHeight
 
-  // Zeile 2: Einsatzort (links) | RG - Empfänger (rechts)
+  // Zeile 2: Telefon Nr. (links) | Einsatzort (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('Einsatzort:', leftColX, currentRowY)
+  doc.text('Telefon Nr.:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.einsatzort || '-').substring(0, 30), leftValueX, currentRowY)
+  doc.text((data.telefonNr || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
-  doc.text('RG - Empfänger:', rightColX, currentRowY)
+  doc.text('Einsatzort:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
+  doc.text((data.einsatzort || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += rowHeight
 
-  // Zeile 3: Art der Arbeit (links) | Telefon Nr. (rechts)
+  // Zeile 3: RG - Empfänger (links) | E-Mail (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', leftColX, currentRowY)
+  doc.text('RG - Empfänger:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.artDerArbeit || '-').substring(0, 30), leftValueX, currentRowY)
-
-  doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += rowHeight
-
-  // Zeile 4: Monteur (links) | E-Mail (rechts)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Monteur:', leftColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  const monteurLines = doc.splitTextToSize(data.monteur || '-', 45) as string[]
-  const limitedMonteurLines = monteurLines.slice(0, 2)
-  limitedMonteurLines.forEach((line, index) => {
-    doc.text(line, leftValueX, currentRowY + index * 3.8)
-  })
+  doc.text((data.rgEmpfaenger || '-').substring(0, 30), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
   doc.text('E-Mail:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.email || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.8 + 1.5)
+  currentRowY += rowHeight
+
+  // Zeile 4: Monteur (links)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Monteur:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  const monteurLines = doc.splitTextToSize(data.monteur || '-', 55) as string[]
+  const limitedMonteurLines = monteurLines.slice(0, 2)
+  limitedMonteurLines.forEach((line, index) => {
+    doc.text(line, leftValueX, currentRowY + index * 3.5)
+  })
+  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.5 + 1.5)
+
+  // Zeile 5: Art der Arbeit (links)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Art der Arbeit:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.artDerArbeit || '-').substring(0, 35), leftValueX, currentRowY)
+  currentRowY += rowHeight
 
   yPos = currentRowY + 8
 
