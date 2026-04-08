@@ -143,23 +143,11 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   let currentRowY = yPos
   const rowHeight = 7
 
-  // Zeile 1: Einsatzort (links) | Datum (rechts)
+  // Zeile 1: Datum (links) | Wochentag (rechts)
   doc.setFont('helvetica', 'bold')
-  doc.text('Einsatzort:', leftColX, currentRowY)
+  doc.text('Datum:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.einsatzort || '-').substring(0, 30), leftValueX, currentRowY)
-
-  doc.setFont('helvetica', 'bold')
-  doc.text('Datum:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.datum || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += rowHeight
-
-  // Zeile 2: Art der Arbeit (links) | Wochentag (rechts)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', leftColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.artDerArbeit || '-').substring(0, 30), leftValueX, currentRowY)
+  doc.text((data.datum || '-').substring(0, 25), leftValueX, currentRowY)
 
   doc.setFont('helvetica', 'bold')
   doc.text('Wochentag:', rightColX, currentRowY)
@@ -167,7 +155,31 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.text((data.wochentag || '-').substring(0, 25), rightValueX, currentRowY)
   currentRowY += rowHeight
 
-  // Zeile 3: Monteur (links) | RG - Empfänger (rechts)
+  // Zeile 2: Einsatzort (links) | RG - Empfänger (rechts)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Einsatzort:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.einsatzort || '-').substring(0, 30), leftValueX, currentRowY)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('RG - Empfänger:', rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
+
+  // Zeile 3: Art der Arbeit (links) | Telefon Nr. (rechts)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Art der Arbeit:', leftColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.artDerArbeit || '-').substring(0, 30), leftValueX, currentRowY)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Telefon Nr.:', rightColX, currentRowY)
+  doc.setFont('helvetica', 'normal')
+  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
+  currentRowY += rowHeight
+
+  // Zeile 4: Monteur (links) | E-Mail (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
@@ -178,24 +190,10 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   })
 
   doc.setFont('helvetica', 'bold')
-  doc.text('RG - Empfänger:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.8 + 1.5)
-
-  // Zeile 4: Telefon Nr. (rechts)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Telefon Nr.:', rightColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.telefonNr || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += rowHeight
-
-  // Zeile 5: E-Mail (nur rechts)
-  doc.setFont('helvetica', 'bold')
   doc.text('E-Mail:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.email || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += 5
+  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.8 + 1.5)
 
   yPos = currentRowY + 8
 
