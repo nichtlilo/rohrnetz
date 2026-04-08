@@ -99,32 +99,32 @@ function getLeistungInfo(beschreibung: string): { einheit: string; preis: string
 
 export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   const doc = new jsPDF()
-  let yPos = 20
+  let yPos = 15
 
   if (COMPANY_LOGO_BASE64) {
-    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 10, 40, 12)
+    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 8, 35, 10)
   }
 
-  // Header
-  doc.setFontSize(16)
+  // Header - kompakter wie im Tagesbericht
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 7
+  yPos += 5
   
-  // Firmendaten (Kontaktinformationen)
-  doc.setFontSize(9)
+  // Firmendaten (Kontaktinformationen) - kompakter
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
-  yPos += 5
+  yPos += 4
   doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
-  yPos += 8
+  yPos += 6
 
-  // Title mit Datum daneben
-  doc.setFontSize(14)
+  // Title
+  doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(25, 118, 210)
   doc.text('Leistungsauftrag', 20, yPos)
@@ -135,7 +135,7 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
 
-  // Basic Information - gleiche Anordnung wie im Tagesbericht
+  // Basic Information - gleiche Grundlogik wie im Tagesbericht
   const leftColX = 20
   const rightColX = 100
   const leftValueX = 50
@@ -171,20 +171,19 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.monteur || '-').substring(0, 30), leftValueX, currentRowY)
+  const monteurLines = doc.splitTextToSize(data.monteur || '-', 45) as string[]
+  const limitedMonteurLines = monteurLines.slice(0, 2)
+  limitedMonteurLines.forEach((line, index) => {
+    doc.text(line, leftValueX, currentRowY + index * 3.8)
+  })
 
   doc.setFont('helvetica', 'bold')
   doc.text('RG - Empfänger:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
   doc.text((data.rgEmpfaenger || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += rowHeight
+  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.8 + 1.5)
 
-  // Zeile 4: Blockschrift (links) | Telefon Nr. (rechts)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Blockschrift:', leftColX, currentRowY)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.blockschrift || '-').substring(0, 30), leftValueX, currentRowY)
-
+  // Zeile 4: Telefon Nr. (rechts)
   doc.setFont('helvetica', 'bold')
   doc.text('Telefon Nr.:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
