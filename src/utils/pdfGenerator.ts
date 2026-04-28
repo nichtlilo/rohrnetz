@@ -183,12 +183,11 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', leftColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  const monteurLines = doc.splitTextToSize(data.monteur || '-', 55) as string[]
-  const limitedMonteurLines = monteurLines.slice(0, 2)
-  limitedMonteurLines.forEach((line, index) => {
+  const monteurLines = doc.splitTextToSize(data.monteur || '-', 155) as string[]
+  monteurLines.forEach((line, index) => {
     doc.text(line, leftValueX, currentRowY + index * 3.5)
   })
-  currentRowY += Math.max(rowHeight, limitedMonteurLines.length * 3.5 + 1.5)
+  currentRowY += Math.max(rowHeight, monteurLines.length * 3.5 + 1.5)
 
   // Zeile 5: Art der Arbeit (links)
   doc.setFont('helvetica', 'bold')
@@ -481,8 +480,18 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', 20, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.monteurArbeitszeit || '-').substring(0, 50), 50, yPos)
-  yPos += 5
+  const monteurText = data.monteurArbeitszeit || '-'
+  const monteurX = 50
+  const rightMargin = 5
+  const monteurMaxWidth = 210 - monteurX - rightMargin
+  const monteurTextLines = doc.splitTextToSize(monteurText, monteurMaxWidth) as string[]
+  const monteurLineHeight = 3.8
+
+  monteurTextLines.forEach((line, idx) => {
+    doc.text(line, monteurX, yPos + idx * monteurLineHeight)
+  })
+
+  yPos += Math.max(5, monteurTextLines.length * monteurLineHeight + 1.2)
 
   // Art der Arbeit - ohne harte Trunkierung (wrap bis zum rechten Rand)
   doc.setFont('helvetica', 'bold')
