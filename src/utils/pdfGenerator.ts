@@ -482,8 +482,8 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFont('helvetica', 'normal')
   const monteurText = data.monteurArbeitszeit || '-'
   const monteurX = 50
-  const rightMargin = 5
-  const monteurMaxWidth = 210 - monteurX - rightMargin
+  const monteurRightMargin = 5
+  const monteurMaxWidth = 210 - monteurX - monteurRightMargin
   const monteurTextLines = doc.splitTextToSize(monteurText, monteurMaxWidth) as string[]
   const monteurLineHeight = 3.8
 
@@ -500,8 +500,8 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
 
   const artText = data.artDerArbeit || '-'
   const artX = 50
-  const rightMargin = 5
-  const artMaxWidth = 210 - artX - rightMargin
+  const artRightMargin = 5
+  const artMaxWidth = 210 - artX - artRightMargin
   const artLines = doc.splitTextToSize(artText, artMaxWidth) as string[]
   const lineHeight = 3.8
 
