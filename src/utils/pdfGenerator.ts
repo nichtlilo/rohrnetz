@@ -164,8 +164,11 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Einsatzort:', rightColX, currentRowY)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.einsatzort || '-').substring(0, 25), rightValueX, currentRowY)
-  currentRowY += rowHeight
+  const einsatzortLines = doc.splitTextToSize(data.einsatzort || '-', 70) as string[]
+  einsatzortLines.forEach((line, index) => {
+    doc.text(line, rightValueX, currentRowY + index * 3.5)
+  })
+  currentRowY += Math.max(rowHeight, einsatzortLines.length * 3.5 + 1.5)
 
   // Zeile 3: RG - Empfänger (links) | E-Mail (rechts)
   doc.setFont('helvetica', 'bold')
@@ -462,8 +465,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   doc.setFont('helvetica', 'bold')
   doc.text('Straße/Haus-Nr.:', 100, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.strasseHausNr || '-').substring(0, 25), 130, yPos)
-  yPos += 5
+  const strasseHausNrLines = doc.splitTextToSize(data.strasseHausNr || '-', 70) as string[]
+  strasseHausNrLines.forEach((line, index) => {
+    doc.text(line, 130, yPos + index * 3.8)
+  })
+  yPos += Math.max(5, strasseHausNrLines.length * 3.8 + 1.2)
 
   doc.setFont('helvetica', 'bold')
   doc.text('Auftraggeber:', 20, yPos)
