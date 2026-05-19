@@ -26,7 +26,7 @@ const LEISTUNG_OPTIONEN: LeistungOption[] = [
   { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00', mengeTyp: 'psch' }, // 2
   { beschreibung: 'Einleitgebühren - AG', preis: '10,96', mengeTyp: 'm3' }, // 3
   { beschreibung: 'Einleitgebühren - KKA', preis: '30,11', mengeTyp: 'm3' }, // 4
-  { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00', mengeTyp: 'h' }, // 5
+  { beschreibung: 'Spülfahrzeug HDS NOL - WS RB 523', preis: '148,00', mengeTyp: 'h' }, // 5
   { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00', mengeTyp: 'h' }, // 6
   { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' }, // 7
   { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' }, // 8

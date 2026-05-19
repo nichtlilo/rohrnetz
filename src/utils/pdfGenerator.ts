@@ -65,7 +65,7 @@ function getLeistungInfo(beschreibung: string): { einheit: string; preis: string
     { beschreibung: 'Bereitschaftseinsatz - Nach Feierabend', preis: '50,00', mengeTyp: 'psch' },
     { beschreibung: 'Einleitgebühren - AG', preis: '10,96', mengeTyp: 'm3' },
     { beschreibung: 'Einleitgebühren - KKA', preis: '30,11', mengeTyp: 'm3' },
-    { beschreibung: 'Spülfahrzeug HDS NOL - RB 23', preis: '148,00', mengeTyp: 'h' },
+    { beschreibung: 'Spülfahrzeug HDS NOL - WS RB 523', preis: '148,00', mengeTyp: 'h' },
     { beschreibung: 'Saugwagen MAN NOL - RB 907 / 10 m³', preis: '105,00', mengeTyp: 'h' },
     { beschreibung: 'TV - Befahrung', preis: '104,00', mengeTyp: 'h' },
     { beschreibung: 'Nasssauger (ohne Arbeitslohn)', preis: '35,00', mengeTyp: 'h' },
