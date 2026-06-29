@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import { COMPANY_LOGO_BASE64 } from '../assets/companyLogo'
 
 export interface LeistungsauftragData {
@@ -58,6 +58,206 @@ function addImageToPDF(doc: jsPDF, imageData: string, x: number, y: number, widt
   }
 }
 
+const PAGE_MARGIN_BOTTOM = 10
+const PAGE_WIDTH = 210
+const CONTENT_MARGIN_X = 20
+const CONTENT_MAX_WIDTH = PAGE_WIDTH - CONTENT_MARGIN_X * 2
+
+const LEISTUNGSAUFTRAG_CONFIRMATION_TEXT =
+  'Der Auftraggeber bestätigt, dass neben den Einsatzzeiten vor Ort auch die erforderlichen An- und Abfahrtszeiten sowie die Zeiten für Reinigung, Wartung und Betankung der eingesetzten Fahrzeuge und Geräte abrechnungsrelevant sind.'
+
+interface HeaderOptions {
+  title: string
+}
+
+function getPageHeight(doc: jsPDF): number {
+  return doc.internal.pageSize.getHeight()
+}
+
+export function drawReportHeader(doc: jsPDF, options: HeaderOptions): number {
+  let yPos = 15
+
+  if (COMPANY_LOGO_BASE64) {
+    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 8, 35, 10)
+  }
+
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(0, 0, 0)
+  doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
+  yPos += 5
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
+  yPos += 4
+  doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
+  yPos += 4
+  doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
+  yPos += 4
+  doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
+  yPos += 6
+
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(25, 118, 210)
+  doc.text(options.title, 20, yPos)
+  yPos += 7
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(0, 0, 0)
+
+  return yPos
+}
+
+function drawWrappedTextBlock(
+  doc: jsPDF,
+  lines: string[],
+  x: number,
+  y: number,
+  lineHeight: number
+): number {
+  lines.forEach((line, index) => {
+    doc.text(line, x, y + index * lineHeight)
+  })
+  return y + lines.length * lineHeight
+}
+
+interface LeistungsauftragFooterLayout {
+  confirmationLines: string[]
+  confirmationHeight: number
+  blockschriftHeight: number
+  signatureSectionHeight: number
+  mwstHeight: number
+  totalHeight: number
+}
+
+function calculateLeistungsauftragFooterLayout(doc: jsPDF): LeistungsauftragFooterLayout {
+  const confirmationLineHeight = 3.5
+  const confirmationGap = 4
+  const blockschriftHeight = 8
+  const blockschriftGap = 8
+  const signatureHeight = 30
+  const signatureLabelOffset = 2
+  const signatureSectionHeight = signatureHeight + signatureLabelOffset
+  const mwstHeight = 15
+  const sectionGap = 6
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  const confirmationLines = doc.splitTextToSize(
+    LEISTUNGSAUFTRAG_CONFIRMATION_TEXT,
+    CONTENT_MAX_WIDTH
+  ) as string[]
+  const confirmationHeight = confirmationLines.length * confirmationLineHeight + confirmationGap
+
+  const totalHeight =
+    confirmationHeight +
+    blockschriftHeight +
+    blockschriftGap +
+    signatureSectionHeight +
+    sectionGap +
+    mwstHeight
+
+  return {
+    confirmationLines,
+    confirmationHeight,
+    blockschriftHeight,
+    signatureSectionHeight,
+    mwstHeight,
+    totalHeight
+  }
+}
+
+function placeLeistungsauftragFooter(
+  doc: jsPDF,
+  contentEndY: number,
+  data: LeistungsauftragData,
+  layout: LeistungsauftragFooterLayout
+) {
+  const pageHeight = getPageHeight(doc)
+  const signatureWidth = 70
+  const signatureHeight = 30
+  const signatureLabelOffset = 2
+  const confirmationLineHeight = 3.5
+  const confirmationGap = 4
+  const blockschriftGap = 8
+  const sectionGap = 6
+
+  const placeAtBottom = () => {
+    const signatureBoxBottom = pageHeight - PAGE_MARGIN_BOTTOM - layout.mwstHeight - sectionGap
+    const signatureY = signatureBoxBottom - signatureHeight - 2
+    const blockschriftY = signatureY - blockschriftGap
+    const confirmationStartY =
+      blockschriftY - confirmationGap - layout.confirmationLines.length * confirmationLineHeight
+
+    return { confirmationStartY, blockschriftY, signatureY, signatureBoxBottom }
+  }
+
+  let positions = placeAtBottom()
+
+  if (positions.confirmationStartY < contentEndY + 5) {
+    doc.addPage()
+    positions = placeAtBottom()
+  }
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(0, 0, 0)
+  drawWrappedTextBlock(
+    doc,
+    layout.confirmationLines,
+    CONTENT_MARGIN_X,
+    positions.confirmationStartY,
+    confirmationLineHeight
+  )
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  const blockschriftLabelWidth = doc.getTextWidth('Blockschrift:')
+  doc.text('Blockschrift:', CONTENT_MARGIN_X, positions.blockschriftY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.blockschrift || '-', CONTENT_MARGIN_X + blockschriftLabelWidth + 2, positions.blockschriftY)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.text('Unterschrift Kunde', CONTENT_MARGIN_X, positions.signatureY)
+  if (data.kundeSignatur) {
+    addImageToPDF(
+      doc,
+      data.kundeSignatur,
+      CONTENT_MARGIN_X,
+      positions.signatureY + signatureLabelOffset,
+      signatureWidth,
+      signatureHeight
+    )
+  } else {
+    doc.setLineWidth(0.5)
+    doc.rect(CONTENT_MARGIN_X, positions.signatureY + signatureLabelOffset, signatureWidth, signatureHeight)
+  }
+
+  doc.text('Unterschrift Mitarbeiter', 110, positions.signatureY)
+  if (data.mitarbeiterSignatur) {
+    addImageToPDF(
+      doc,
+      data.mitarbeiterSignatur,
+      110,
+      positions.signatureY + signatureLabelOffset,
+      signatureWidth,
+      signatureHeight
+    )
+  } else {
+    doc.setLineWidth(0.5)
+    doc.rect(110, positions.signatureY + signatureLabelOffset, signatureWidth, signatureHeight)
+  }
+
+  const mwstY = positions.signatureBoxBottom + sectionGap
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'italic')
+  doc.text('Alle Preise sind Nettopreise, zzgl. der gesetzlichen MwSt.', 105, mwstY, { align: 'center' })
+}
+
 // Helper function to get Einheit and Preis from Beschreibung
 function getLeistungInfo(beschreibung: string): { einheit: string; preis: string } {
   const LEISTUNG_OPTIONEN = [
@@ -97,43 +297,12 @@ function getLeistungInfo(beschreibung: string): { einheit: string; preis: string
   }
 }
 
-export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
+export function generateLeistungsauftragPDF(
+  data: LeistungsauftragData,
+  onSave?: (doc: jsPDF, filename: string) => void
+) {
   const doc = new jsPDF()
-  let yPos = 15
-
-  if (COMPANY_LOGO_BASE64) {
-    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 8, 35, 10)
-  }
-
-  // Header - kompakter wie im Tagesbericht
-  doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
-  doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 5
-  
-  // Firmendaten (Kontaktinformationen) - kompakter
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('Internet: www.rohrnetz-beil.de | E-mail: info@rohrnetz-beil.de', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
-  yPos += 6
-
-  // Title
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(25, 118, 210)
-  doc.text('Leistungsauftrag', 20, yPos)
-  
-  yPos += 7
-
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(0, 0, 0)
+  let yPos = drawReportHeader(doc, { title: 'Leistungsauftrag' })
 
   // Basic Information - gleiche Anordnung und Dichte wie im Tagesbericht
   const leftColX = 20
@@ -349,101 +518,23 @@ export function generateLeistungsauftragPDF(data: LeistungsauftragData) {
   // yPos auf das Ende von Sonstiges setzen
   yPos = sonstigesEndY
 
-  // Signatures - immer am Ende der Seite fixieren (ohne neue Seite)
-  // Berechne benötigten Platz für Unterschriften-Bereich (ca. 50mm)
-  const signatureAreaHeight = 50
-  const pageHeight = 297 // A4 Höhe in mm
-  const bottomMargin = 10
-  
-  // Wenn nicht genug Platz, dann auf dieser Seite nach oben verschieben
-  let signatureY = pageHeight - bottomMargin - signatureAreaHeight
-  
-  // Wenn der Inhalt zu weit nach unten geht, Unterschriften höher setzen
-  if (yPos > signatureY - 10) {
-    signatureY = Math.max(yPos + 10, pageHeight - bottomMargin - signatureAreaHeight)
-  }
-  
-  const signatureWidth = 70
-  const signatureHeight = 30
+  const footerLayout = calculateLeistungsauftragFooterLayout(doc)
+  placeLeistungsauftragFooter(doc, yPos, data, footerLayout)
 
-  // Blockschrift nur links über Kunden-Unterschrift
-  const monteurBlockschriftY = signatureY - 8
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  const blockschriftLabelWidth = doc.getTextWidth('Blockschrift:')
-  doc.text('Blockschrift:', 20, monteurBlockschriftY)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.blockschrift || '-', 20 + blockschriftLabelWidth + 2, monteurBlockschriftY)
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.text('Unterschrift Kunde', 20, signatureY)
-  if (data.kundeSignatur) {
-    addImageToPDF(doc, data.kundeSignatur, 20, signatureY + 2, signatureWidth, signatureHeight)
+  const filename = `Leistungsauftrag_${data.datum || 'Datum'}.pdf`
+  if (onSave) {
+    onSave(doc, filename)
   } else {
-    doc.setLineWidth(0.5)
-    doc.rect(20, signatureY + 2, signatureWidth, signatureHeight)
+    doc.save(filename)
   }
-
-  doc.text('Unterschrift Mitarbeiter', 110, signatureY)
-  if (data.mitarbeiterSignatur) {
-    addImageToPDF(doc, data.mitarbeiterSignatur, 110, signatureY + 2, signatureWidth, signatureHeight)
-  } else {
-    doc.setLineWidth(0.5)
-    doc.rect(110, signatureY + 2, signatureWidth, signatureHeight)
-  }
-
-  // MwSt-Hinweis
-  if (yPos < 250) {
-    yPos = signatureY + signatureHeight + 15
-  } else {
-    doc.addPage()
-    yPos = 260
-  }
-  
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'italic')
-  doc.text('Alle Preise sind Nettopreise, zzgl. der gesetzlichen MwSt.', 105, yPos, { align: 'center' })
-
-  doc.save(`Leistungsauftrag_${data.datum || 'Datum'}.pdf`)
 }
 
-export function generateTagesberichtPDF(data: TagesberichtData) {
+export function generateTagesberichtPDF(
+  data: TagesberichtData,
+  onSave?: (doc: jsPDF, filename: string) => void
+) {
   const doc = new jsPDF()
-  let yPos = 15
-
-  if (COMPANY_LOGO_BASE64) {
-    addImageToPDF(doc, COMPANY_LOGO_BASE64, 20, 8, 35, 10)
-  }
-
-  // Header - kompakter
-  doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
-  doc.text('ROHRNETZ Beil GmbH', 105, yPos, { align: 'center' })
-  yPos += 5
-  
-  // Firmendaten (Kontaktinformationen) - kompakter
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Luisenstr. 10, 02943 Weißwasser', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('Tel.: 03576/28860 | Fax: 03576/288618', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('Internet: www.rohrnetz-beil.de | E-mail: buero@rohrnetz-beil.de', 105, yPos, { align: 'center' })
-  yPos += 4
-  doc.text('St.-Nr.: 207/117/00189', 105, yPos, { align: 'center' })
-  yPos += 6
-
-  // Title
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(25, 118, 210)
-  doc.text('Tagesbericht', 20, yPos)
-  yPos += 7
-
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(0, 0, 0)
+  let yPos = drawReportHeader(doc, { title: 'Tagesbericht' })
 
   // Basic Information - kompakter
   doc.setFont('helvetica', 'bold')
@@ -712,6 +803,11 @@ export function generateTagesberichtPDF(data: TagesberichtData) {
   const confirmationY = signatureY + signatureHeight + 8
   doc.text(confirmationText, 105, confirmationY, { align: 'center', maxWidth: 170 })
 
-  doc.save(`Tagesbericht_${data.datum || 'Datum'}.pdf`)
+  const filename = `Tagesbericht_${data.datum || 'Datum'}.pdf`
+  if (onSave) {
+    onSave(doc, filename)
+  } else {
+    doc.save(filename)
+  }
 }
 
