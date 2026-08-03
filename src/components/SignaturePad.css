@@ -35,6 +35,16 @@
   color: #333;
 }
 
+.signature-modal-notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #444;
+  background: #f7f7f7;
+  border-left: 3px solid #1976d2;
+}
+
 .close-button {
   background: none;
   border: none;
@@ -128,6 +138,12 @@
 
 .dark-mode .signature-modal-header h3 {
   color: #ffffff;
+}
+
+.dark-mode .signature-modal-notice {
+  color: #ccc;
+  background: #2a2a2a;
+  border-left-color: #64b5f6;
 }
 
 .dark-mode .close-button {

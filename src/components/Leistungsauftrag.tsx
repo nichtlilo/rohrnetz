@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import SignaturePad from './SignaturePad'
-import { generateLeistungsauftragPDF } from '../utils/pdfGenerator'
+import { generateLeistungsauftragPDF, LEISTUNGSAUFTRAG_CONFIRMATION_TEXT } from '../utils/pdfGenerator'
 import './Leistungsauftrag.css'
 
 type MengeTyp = 'psch' | 'm3' | 'h' | 'h_16' | 'zuschlag' | 'stueck' | 'stueck_10'
@@ -732,6 +732,8 @@ function Leistungsauftrag() {
           </div>
         </div>
 
+        <p className="signature-notice">{LEISTUNGSAUFTRAG_CONFIRMATION_TEXT}</p>
+
         <div className="signature-section">
           <div className="signature-box">
             <div className="signature-header">
@@ -810,6 +812,7 @@ function Leistungsauftrag() {
 
       {showKundeSignatur && (
         <SignaturePad
+          notice={LEISTUNGSAUFTRAG_CONFIRMATION_TEXT}
           onComplete={(dataUrl) => handleSignaturComplete('kunde', dataUrl)}
           onClose={() => setShowKundeSignatur(false)}
         />
@@ -817,6 +820,7 @@ function Leistungsauftrag() {
 
       {showMitarbeiterSignatur && (
         <SignaturePad
+          notice={LEISTUNGSAUFTRAG_CONFIRMATION_TEXT}
           onComplete={(dataUrl) => handleSignaturComplete('mitarbeiter', dataUrl)}
           onClose={() => setShowMitarbeiterSignatur(false)}
         />

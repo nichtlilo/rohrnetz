@@ -30,6 +30,7 @@ export interface TagesberichtData {
   ort: string
   strasseHausNr: string
   telefonNr: string
+  email: string
   monteurArbeitszeit: string
   artDerArbeit: string
   geräte: Array<{
@@ -63,8 +64,11 @@ const PAGE_WIDTH = 210
 const CONTENT_MARGIN_X = 20
 const CONTENT_MAX_WIDTH = PAGE_WIDTH - CONTENT_MARGIN_X * 2
 
-const LEISTUNGSAUFTRAG_CONFIRMATION_TEXT =
+export const LEISTUNGSAUFTRAG_CONFIRMATION_TEXT =
   'Der Auftraggeber bestätigt, dass neben den Einsatzzeiten vor Ort auch die erforderlichen An- und Abfahrtszeiten sowie die Zeiten für Reinigung, Wartung und Betankung der eingesetzten Fahrzeuge und Geräte abrechnungsrelevant sind.'
+
+export const TAGESBERICHT_CONFIRMATION_TEXT =
+  'Mit der Unterschrift des Mitarbeiters bestätigen wir, dass die Baustellensicherung ordnungsgemäß aufgestellt und kontrolliert wurde'
 
 interface HeaderOptions {
   title: string
@@ -536,77 +540,84 @@ export function generateTagesberichtPDF(
   const doc = new jsPDF()
   let yPos = drawReportHeader(doc, { title: 'Tagesbericht' })
 
-  // Basic Information - kompakter
-  doc.setFont('helvetica', 'bold')
-  doc.text('Datum:', 20, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.datum || '-', 50, yPos)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Wochentag:', 100, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text(data.wochentag || '-', 130, yPos)
-  yPos += 5
+  // Basic Information – gleiche Spalten/Abstände wie Leistungsauftrag
+  const leftColX = 20
+  const rightColX = 100
+  const leftValueX = 50
+  const rightValueX = 130
+  const rowHeight = 5
+  const wrapLineHeight = 3.5
 
   doc.setFont('helvetica', 'bold')
-  doc.text('Tel.Nr.:', 20, yPos)
+  doc.text('Datum:', leftColX, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text(data.telefonNr || '-', 50, yPos)
-  
+  doc.text(data.datum || '-', leftValueX, yPos)
+
   doc.setFont('helvetica', 'bold')
-  doc.text('Straße/Haus-Nr.:', 100, yPos)
+  doc.text('Wochentag:', rightColX, yPos)
   doc.setFont('helvetica', 'normal')
+  doc.text(data.wochentag || '-', rightValueX, yPos)
+  yPos += rowHeight
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Tel.Nr.:', leftColX, yPos)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.telefonNr || '-', leftValueX, yPos)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Straße/Haus-Nr.:', rightColX, yPos)
+  doc.setFont('helvetica', 'normal')
+  // ponytail: wrap statt substring; Ceiling: lange Adressen brauchen mehr Zeilenhöhe
   const strasseHausNrLines = doc.splitTextToSize(data.strasseHausNr || '-', 70) as string[]
   strasseHausNrLines.forEach((line, index) => {
-    doc.text(line, 130, yPos + index * 3.8)
+    doc.text(line, rightValueX, yPos + index * wrapLineHeight)
   })
-  yPos += Math.max(5, strasseHausNrLines.length * 3.8 + 1.2)
+  yPos += Math.max(rowHeight, strasseHausNrLines.length * wrapLineHeight + 1.5)
 
   doc.setFont('helvetica', 'bold')
-  doc.text('Auftraggeber:', 20, yPos)
+  doc.text('Auftraggeber:', leftColX, yPos)
   doc.setFont('helvetica', 'normal')
-  doc.text((data.auftraggeber || '-').substring(0, 30), 50, yPos)
-  
-  doc.setFont('helvetica', 'bold')
-  doc.text('Ort:', 100, yPos)
-  doc.setFont('helvetica', 'normal')
-  doc.text((data.ort || '-').substring(0, 25), 130, yPos)
-  yPos += 5
+  doc.text((data.auftraggeber || '-').substring(0, 30), leftValueX, yPos)
 
-  // Monteur - zweispaltig wie die anderen Felder
   doc.setFont('helvetica', 'bold')
-  doc.text('Monteur:', 20, yPos)
+  doc.text('Ort:', rightColX, yPos)
   doc.setFont('helvetica', 'normal')
-  const monteurText = data.monteurArbeitszeit || '-'
-  const monteurX = 50
-  const monteurRightMargin = 5
-  const monteurMaxWidth = 210 - monteurX - monteurRightMargin
-  const monteurTextLines = doc.splitTextToSize(monteurText, monteurMaxWidth) as string[]
-  const monteurLineHeight = 3.8
+  const ortLines = doc.splitTextToSize(data.ort || '-', 70) as string[]
+  ortLines.forEach((line, index) => {
+    doc.text(line, rightValueX, yPos + index * wrapLineHeight)
+  })
+  yPos += Math.max(rowHeight, ortLines.length * wrapLineHeight + 1.5)
 
+  // Monteur links, E-Mail rechts – Platz zwischen den Spalten lassen
+  doc.setFont('helvetica', 'bold')
+  doc.text('Monteur:', leftColX, yPos)
+  doc.setFont('helvetica', 'normal')
+  const monteurTextLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 45) as string[]
   monteurTextLines.forEach((line, idx) => {
-    doc.text(line, monteurX, yPos + idx * monteurLineHeight)
+    doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
   })
 
-  yPos += Math.max(5, monteurTextLines.length * monteurLineHeight + 1.2)
-
-  // Art der Arbeit - ohne harte Trunkierung (wrap bis zum rechten Rand)
   doc.setFont('helvetica', 'bold')
-  doc.text('Art der Arbeit:', 20, yPos)
+  doc.text('E-Mail:', rightColX, yPos)
   doc.setFont('helvetica', 'normal')
-
-  const artText = data.artDerArbeit || '-'
-  const artX = 50
-  const artRightMargin = 5
-  const artMaxWidth = 210 - artX - artRightMargin
-  const artLines = doc.splitTextToSize(artText, artMaxWidth) as string[]
-  const lineHeight = 3.8
-
-  artLines.forEach((line, idx) => {
-    doc.text(line, artX, yPos + idx * lineHeight)
+  const emailLines = doc.splitTextToSize(data.email || '-', 70) as string[]
+  emailLines.forEach((line, idx) => {
+    doc.text(line, rightValueX, yPos + idx * wrapLineHeight)
   })
 
-  yPos += Math.max(12, artLines.length * lineHeight + 2)
+  yPos += Math.max(
+    rowHeight,
+    Math.max(monteurTextLines.length, emailLines.length) * wrapLineHeight + 1.5
+  )
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Art der Arbeit:', leftColX, yPos)
+  doc.setFont('helvetica', 'normal')
+  const artLines = doc.splitTextToSize(data.artDerArbeit || '-', 155) as string[]
+  artLines.forEach((line, idx) => {
+    doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
+  })
+  yPos += Math.max(12, artLines.length * wrapLineHeight + 2)
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)
@@ -796,12 +807,10 @@ export function generateTagesberichtPDF(
   }
 
   // Hinweistext unter den Unterschriften
-  const confirmationText =
-    'Mit der Unterschrift des Mitarbeiters bestätigen wir, dass die Baustellensicherung ordnungsgemäß aufgestellt und kontrolliert wurde'
   doc.setFontSize(8)
   doc.setFont('helvetica', 'italic')
   const confirmationY = signatureY + signatureHeight + 8
-  doc.text(confirmationText, 105, confirmationY, { align: 'center', maxWidth: 170 })
+  doc.text(TAGESBERICHT_CONFIRMATION_TEXT, 105, confirmationY, { align: 'center', maxWidth: 170 })
 
   const filename = `Tagesbericht_${data.datum || 'Datum'}.pdf`
   if (onSave) {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import SignaturePad from './SignaturePad'
-import { generateTagesberichtPDF } from '../utils/pdfGenerator'
+import { generateTagesberichtPDF, TAGESBERICHT_CONFIRMATION_TEXT } from '../utils/pdfGenerator'
 import './Tagesbericht.css'
 
 const GERÄTE_OPTIONEN = [
@@ -41,6 +41,7 @@ interface TagesberichtData {
   ort: string
   strasseHausNr: string
   telefonNr: string
+  email: string
   monteurArbeitszeit: string
   artDerArbeit: string
   geräte: GerätRow[]
@@ -82,6 +83,7 @@ function Tagesbericht() {
     ort: '',
     strasseHausNr: '',
     telefonNr: '',
+    email: '',
     monteurArbeitszeit: '',
     artDerArbeit: '',
     geräte: [{
@@ -421,17 +423,30 @@ function Tagesbericht() {
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">
-            Monteur <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            placeholder="z.B. Max Mustermann, 8:00 - 16:00"
-            value={formData.monteurArbeitszeit}
-            onChange={(e) => handleInputChange('monteurArbeitszeit', e.target.value)}
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">
+              Monteur <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="z.B. Max Mustermann, 8:00 - 16:00"
+              value={formData.monteurArbeitszeit}
+              onChange={(e) => handleInputChange('monteurArbeitszeit', e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">E-Mail</label>
+            <input
+              type="email"
+              className="form-input"
+              placeholder="E-Mail-Adresse des Kunden"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="form-group">
@@ -765,6 +780,8 @@ function Tagesbericht() {
           </button>
         </div>
 
+        <p className="signature-notice">{TAGESBERICHT_CONFIRMATION_TEXT}</p>
+
         <div className="signature-section">
           <div className="signature-box">
             <div className="signature-header">
@@ -833,6 +850,7 @@ function Tagesbericht() {
 
       {showKundeSignatur && (
         <SignaturePad
+          notice={TAGESBERICHT_CONFIRMATION_TEXT}
           onComplete={(dataUrl) => handleSignaturComplete('kunde', dataUrl)}
           onClose={() => setShowKundeSignatur(false)}
         />
@@ -840,6 +858,7 @@ function Tagesbericht() {
 
       {showMitarbeiterSignatur && (
         <SignaturePad
+          notice={TAGESBERICHT_CONFIRMATION_TEXT}
           onComplete={(dataUrl) => handleSignaturComplete('mitarbeiter', dataUrl)}
           onClose={() => setShowMitarbeiterSignatur(false)}
         />

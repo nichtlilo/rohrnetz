@@ -5,9 +5,10 @@ import './SignaturePad.css'
 interface SignaturePadProps {
   onComplete: (dataUrl: string) => void
   onClose: () => void
+  notice?: string
 }
 
-function SignaturePad({ onComplete, onClose }: SignaturePadProps) {
+function SignaturePad({ onComplete, onClose, notice }: SignaturePadProps) {
   const sigPadRef = useRef<SignatureCanvas>(null)
   const [isEmpty, setIsEmpty] = useState(true)
 
@@ -77,6 +78,7 @@ function SignaturePad({ onComplete, onClose }: SignaturePadProps) {
             </svg>
           </button>
         </div>
+        {notice && <p className="signature-modal-notice">{notice}</p>}
         <div className="signature-canvas-container">
           <SignatureCanvas
             ref={sigPadRef}

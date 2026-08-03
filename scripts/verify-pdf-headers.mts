@@ -71,6 +71,7 @@ const sampleTagesbericht = {
   ort: 'Weißwasser',
   strasseHausNr: 'Lange Straßenbezeichnung mit Hausnummer 123a',
   telefonNr: '03576/123456',
+  email: 'kunde@example.de',
   monteurArbeitszeit: 'Max Mustermann, 8:00 - 16:00',
   artDerArbeit: 'Rohrreinigung und TV-Befahrung',
   geräte: [{ gerät: 'Spüler', menge: '2,0', bemerkung: '' }],
