@@ -588,27 +588,15 @@ export function generateTagesberichtPDF(
   })
   yPos += Math.max(rowHeight, ortLines.length * wrapLineHeight + 1.5)
 
-  // Monteur links, E-Mail rechts – Platz zwischen den Spalten lassen
+  // Monteur volle Breite, E-Mail darunter unter Art der Arbeit
   doc.setFont('helvetica', 'bold')
   doc.text('Monteur:', leftColX, yPos)
   doc.setFont('helvetica', 'normal')
-  const monteurTextLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 45) as string[]
+  const monteurTextLines = doc.splitTextToSize(data.monteurArbeitszeit || '-', 155) as string[]
   monteurTextLines.forEach((line, idx) => {
     doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
   })
-
-  doc.setFont('helvetica', 'bold')
-  doc.text('E-Mail:', rightColX, yPos)
-  doc.setFont('helvetica', 'normal')
-  const emailLines = doc.splitTextToSize(data.email || '-', 70) as string[]
-  emailLines.forEach((line, idx) => {
-    doc.text(line, rightValueX, yPos + idx * wrapLineHeight)
-  })
-
-  yPos += Math.max(
-    rowHeight,
-    Math.max(monteurTextLines.length, emailLines.length) * wrapLineHeight + 1.5
-  )
+  yPos += Math.max(rowHeight, monteurTextLines.length * wrapLineHeight + 1.5)
 
   doc.setFont('helvetica', 'bold')
   doc.text('Art der Arbeit:', leftColX, yPos)
@@ -617,7 +605,16 @@ export function generateTagesberichtPDF(
   artLines.forEach((line, idx) => {
     doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
   })
-  yPos += Math.max(12, artLines.length * wrapLineHeight + 2)
+  yPos += Math.max(rowHeight, artLines.length * wrapLineHeight + 1.5)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('E-Mail:', leftColX, yPos)
+  doc.setFont('helvetica', 'normal')
+  const emailLines = doc.splitTextToSize(data.email || '-', 155) as string[]
+  emailLines.forEach((line, idx) => {
+    doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
+  })
+  yPos += Math.max(12, emailLines.length * wrapLineHeight + 2)
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)

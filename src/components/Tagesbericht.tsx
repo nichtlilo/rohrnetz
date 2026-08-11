@@ -423,30 +423,17 @@ function Tagesbericht() {
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">
-              Monteur <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="z.B. Max Mustermann, 8:00 - 16:00"
-              value={formData.monteurArbeitszeit}
-              onChange={(e) => handleInputChange('monteurArbeitszeit', e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">E-Mail</label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="E-Mail-Adresse des Kunden"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-            />
-          </div>
+        <div className="form-group">
+          <label className="form-label">
+            Monteur <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="z.B. Max Mustermann, 8:00 - 16:00"
+            value={formData.monteurArbeitszeit}
+            onChange={(e) => handleInputChange('monteurArbeitszeit', e.target.value)}
+          />
         </div>
 
         <div className="form-group">
@@ -459,6 +446,17 @@ function Tagesbericht() {
             placeholder="Beschreibung der durchgeführten Arbeiten"
             value={formData.artDerArbeit}
             onChange={(e) => handleInputChange('artDerArbeit', e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">E-Mail</label>
+          <input
+            type="email"
+            className="form-input"
+            placeholder="E-Mail-Adresse des Kunden"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
           />
         </div>
 
