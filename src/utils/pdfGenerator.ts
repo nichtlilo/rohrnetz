@@ -11,6 +11,7 @@ export interface LeistungsauftragData {
   monteur: string
   telefonNr: string
   blockschrift: string
+  auftragErledigt: boolean
   leistungen: Array<{
     beschreibung: string
     einheit: string
@@ -33,6 +34,7 @@ export interface TagesberichtData {
   email: string
   monteurArbeitszeit: string
   artDerArbeit: string
+  auftragErledigt: boolean
   geräte: Array<{
     gerät: string
     menge: string
@@ -49,6 +51,24 @@ export interface TagesberichtData {
   }>
   kundeSignatur: string
   mitarbeiterSignatur: string
+}
+
+function drawAuftragErledigtStatus(doc: jsPDF, x: number, y: number, erledigt: boolean) {
+  doc.setFont('helvetica', 'bold')
+  doc.text('Auftrag erledigt:', x, y)
+  doc.setFont('helvetica', 'normal')
+  const boxX = x + doc.getTextWidth('Auftrag erledigt:') + 3
+  const boxY = y - 3.2
+  doc.setLineWidth(0.4)
+  doc.rect(boxX, boxY, 3.5, 3.5)
+  if (erledigt) {
+    doc.setFont('helvetica', 'bold')
+    doc.text('X', boxX + 0.7, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Ja', boxX + 5.5, y)
+  } else {
+    doc.text('Nein', boxX + 5.5, y)
+  }
 }
 
 function addImageToPDF(doc: jsPDF, imageData: string, x: number, y: number, width: number, height: number) {
@@ -372,6 +392,9 @@ export function generateLeistungsauftragPDF(
   doc.text((data.artDerArbeit || '-').substring(0, 35), leftValueX, currentRowY)
   currentRowY += rowHeight
 
+  drawAuftragErledigtStatus(doc, leftColX, currentRowY, data.auftragErledigt)
+  currentRowY += rowHeight
+
   yPos = currentRowY + 8
 
   // Leistung Table
@@ -614,7 +637,10 @@ export function generateTagesberichtPDF(
   emailLines.forEach((line, idx) => {
     doc.text(line, leftValueX, yPos + idx * wrapLineHeight)
   })
-  yPos += Math.max(12, emailLines.length * wrapLineHeight + 2)
+  yPos += Math.max(rowHeight, emailLines.length * wrapLineHeight + 1.5)
+
+  drawAuftragErledigtStatus(doc, leftColX, yPos, data.auftragErledigt)
+  yPos += Math.max(12, rowHeight + 2)
 
   // Einheitliche Spaltenpositionen für alle Tabellen
   const col1Start = 20  // Erste Spalte (Gerät/Beschreibung/Material)

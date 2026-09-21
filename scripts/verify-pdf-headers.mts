@@ -52,6 +52,7 @@ const sampleLeistungsauftrag = {
   monteur: 'Max Mustermann',
   telefonNr: '03576/123456',
   blockschrift: 'Max Mustermann',
+  auftragErledigt: true,
   leistungen: [{
     beschreibung: 'Spülfahrzeug HDS NOL - WS RB 523',
     einheit: 'h',
@@ -74,6 +75,7 @@ const sampleTagesbericht = {
   email: 'kunde@example.de',
   monteurArbeitszeit: 'Max Mustermann, 8:00 - 16:00',
   artDerArbeit: 'Rohrreinigung und TV-Befahrung',
+  auftragErledigt: false,
   geräte: [{ gerät: 'Spüler', menge: '2,0', bemerkung: '' }],
   arbeitsbeschreibungen: [{ beschreibung: 'Reinigung', mengeStd: '2' }],
   materialien: [{ beschreibung: 'Dichtung', menge: '1', einheit: 'Stk.' }],

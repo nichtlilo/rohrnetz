@@ -44,6 +44,7 @@ interface TagesberichtData {
   email: string
   monteurArbeitszeit: string
   artDerArbeit: string
+  auftragErledigt: boolean
   geräte: GerätRow[]
   arbeitsbeschreibungen: ArbeitsbeschreibungRow[]
   materialien: MaterialRow[]
@@ -86,6 +87,7 @@ function Tagesbericht() {
     email: '',
     monteurArbeitszeit: '',
     artDerArbeit: '',
+    auftragErledigt: false,
     geräte: [{
       id: '1',
       gerät: '',
@@ -459,6 +461,15 @@ function Tagesbericht() {
             onChange={(e) => handleInputChange('email', e.target.value)}
           />
         </div>
+
+        <label className="checkbox-field">
+          <input
+            type="checkbox"
+            checked={formData.auftragErledigt}
+            onChange={(e) => setFormData(prev => ({ ...prev, auftragErledigt: e.target.checked }))}
+          />
+          <span>Auftrag erledigt</span>
+        </label>
 
         <div className="form-section">
           <div className="form-section-header">

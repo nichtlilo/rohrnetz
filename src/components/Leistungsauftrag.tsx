@@ -58,6 +58,7 @@ interface LeistungsauftragData {
   monteur: string
   telefonNr: string
   blockschrift: string
+  auftragErledigt: boolean
   leistungen: LeistungRow[]
   sonstiges: string
   kundeSignatur: string
@@ -99,6 +100,7 @@ function Leistungsauftrag() {
     monteur: '',
     telefonNr: '',
     blockschrift: '',
+    auftragErledigt: false,
     leistungen: [{
       id: '1',
       beschreibung: '',
@@ -731,6 +733,15 @@ function Leistungsauftrag() {
             />
           </div>
         </div>
+
+        <label className="checkbox-field">
+          <input
+            type="checkbox"
+            checked={formData.auftragErledigt}
+            onChange={(e) => setFormData(prev => ({ ...prev, auftragErledigt: e.target.checked }))}
+          />
+          <span>Auftrag erledigt</span>
+        </label>
 
         <p className="signature-notice">{LEISTUNGSAUFTRAG_CONFIRMATION_TEXT}</p>
 
