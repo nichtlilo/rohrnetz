@@ -44,7 +44,7 @@ interface TagesberichtData {
   email: string
   monteurArbeitszeit: string
   artDerArbeit: string
-  auftragErledigt: boolean
+  auftragErledigt: '' | 'ja' | 'nein'
   geräte: GerätRow[]
   arbeitsbeschreibungen: ArbeitsbeschreibungRow[]
   materialien: MaterialRow[]
@@ -87,7 +87,7 @@ function Tagesbericht() {
     email: '',
     monteurArbeitszeit: '',
     artDerArbeit: '',
-    auftragErledigt: false,
+    auftragErledigt: '',
     geräte: [{
       id: '1',
       gerät: '',
@@ -286,6 +286,7 @@ function Tagesbericht() {
     if (!isFilled(formData.strasseHausNr)) missing.push('Straße/Haus-Nr.')
     if (!isFilled(formData.monteurArbeitszeit)) missing.push('Monteur')
     if (!isFilled(formData.artDerArbeit)) missing.push('Art der Arbeit')
+    if (!formData.auftragErledigt) missing.push('Auftrag erledigt (Ja/Nein)')
 
     formData.geräte.forEach((row, index) => {
       if (!isFilled(row.gerät)) missing.push(`Geräte und Maschinen: Gerät (Zeile ${index + 1})`)
@@ -462,14 +463,33 @@ function Tagesbericht() {
           />
         </div>
 
-        <label className="checkbox-field">
-          <input
-            type="checkbox"
-            checked={formData.auftragErledigt}
-            onChange={(e) => setFormData(prev => ({ ...prev, auftragErledigt: e.target.checked }))}
-          />
-          <span>Auftrag erledigt</span>
-        </label>
+        <fieldset className="checkbox-field-group">
+          <legend className="form-label">
+            Auftrag erledigt <span className="required">*</span>
+          </legend>
+          <div className="checkbox-options">
+            <label className="checkbox-field">
+              <input
+                type="radio"
+                name="auftragErledigt"
+                value="ja"
+                checked={formData.auftragErledigt === 'ja'}
+                onChange={() => setFormData(prev => ({ ...prev, auftragErledigt: 'ja' }))}
+              />
+              <span>Ja</span>
+            </label>
+            <label className="checkbox-field">
+              <input
+                type="radio"
+                name="auftragErledigt"
+                value="nein"
+                checked={formData.auftragErledigt === 'nein'}
+                onChange={() => setFormData(prev => ({ ...prev, auftragErledigt: 'nein' }))}
+              />
+              <span>Nein</span>
+            </label>
+          </div>
+        </fieldset>
 
         <div className="form-section">
           <div className="form-section-header">

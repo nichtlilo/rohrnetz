@@ -11,7 +11,7 @@ export interface LeistungsauftragData {
   monteur: string
   telefonNr: string
   blockschrift: string
-  auftragErledigt: boolean
+  auftragErledigt: '' | 'ja' | 'nein'
   leistungen: Array<{
     beschreibung: string
     einheit: string
@@ -34,7 +34,7 @@ export interface TagesberichtData {
   email: string
   monteurArbeitszeit: string
   artDerArbeit: string
-  auftragErledigt: boolean
+  auftragErledigt: '' | 'ja' | 'nein'
   geräte: Array<{
     gerät: string
     menge: string
@@ -53,22 +53,36 @@ export interface TagesberichtData {
   mitarbeiterSignatur: string
 }
 
-function drawAuftragErledigtStatus(doc: jsPDF, x: number, y: number, erledigt: boolean) {
+function drawAuftragErledigtStatus(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  erledigt: '' | 'ja' | 'nein'
+) {
   doc.setFont('helvetica', 'bold')
   doc.text('Auftrag erledigt:', x, y)
   doc.setFont('helvetica', 'normal')
-  const boxX = x + doc.getTextWidth('Auftrag erledigt:') + 3
-  const boxY = y - 3.2
-  doc.setLineWidth(0.4)
-  doc.rect(boxX, boxY, 3.5, 3.5)
-  if (erledigt) {
-    doc.setFont('helvetica', 'bold')
-    doc.text('X', boxX + 0.7, y)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Ja', boxX + 5.5, y)
-  } else {
-    doc.text('Nein', boxX + 5.5, y)
+
+  const labelWidth = doc.getTextWidth('Auftrag erledigt:')
+  const boxSize = 3.5
+  const gap = 4
+  let cursorX = x + labelWidth + 3
+
+  const drawOption = (label: string, selected: boolean) => {
+    const boxY = y - 3.2
+    doc.setLineWidth(0.4)
+    doc.rect(cursorX, boxY, boxSize, boxSize)
+    if (selected) {
+      doc.setFont('helvetica', 'bold')
+      doc.text('X', cursorX + 0.7, y)
+      doc.setFont('helvetica', 'normal')
+    }
+    doc.text(label, cursorX + boxSize + 1.5, y)
+    cursorX += boxSize + 1.5 + doc.getTextWidth(label) + gap
   }
+
+  drawOption('Ja', erledigt === 'ja')
+  drawOption('Nein', erledigt === 'nein')
 }
 
 function addImageToPDF(doc: jsPDF, imageData: string, x: number, y: number, width: number, height: number) {

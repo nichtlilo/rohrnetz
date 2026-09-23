@@ -58,7 +58,7 @@ interface LeistungsauftragData {
   monteur: string
   telefonNr: string
   blockschrift: string
-  auftragErledigt: boolean
+  auftragErledigt: '' | 'ja' | 'nein'
   leistungen: LeistungRow[]
   sonstiges: string
   kundeSignatur: string
@@ -100,7 +100,7 @@ function Leistungsauftrag() {
     monteur: '',
     telefonNr: '',
     blockschrift: '',
-    auftragErledigt: false,
+    auftragErledigt: '',
     leistungen: [{
       id: '1',
       beschreibung: '',
@@ -302,6 +302,7 @@ function Leistungsauftrag() {
     if (!isFilled(formData.wochentag)) missing.push('Wochentag')
     if (!isFilled(formData.monteur)) missing.push('Monteur')
     if (!isFilled(formData.blockschrift)) missing.push('Blockschrift')
+    if (!formData.auftragErledigt) missing.push('Auftrag erledigt (Ja/Nein)')
 
     formData.leistungen.forEach((row, index) => {
       if (!isFilled(row.beschreibung)) missing.push(`Leistung: Beschreibung (Zeile ${index + 1})`)
@@ -734,14 +735,33 @@ function Leistungsauftrag() {
           </div>
         </div>
 
-        <label className="checkbox-field">
-          <input
-            type="checkbox"
-            checked={formData.auftragErledigt}
-            onChange={(e) => setFormData(prev => ({ ...prev, auftragErledigt: e.target.checked }))}
-          />
-          <span>Auftrag erledigt</span>
-        </label>
+        <fieldset className="checkbox-field-group">
+          <legend className="form-label">
+            Auftrag erledigt <span className="required">*</span>
+          </legend>
+          <div className="checkbox-options">
+            <label className="checkbox-field">
+              <input
+                type="radio"
+                name="auftragErledigt"
+                value="ja"
+                checked={formData.auftragErledigt === 'ja'}
+                onChange={() => setFormData(prev => ({ ...prev, auftragErledigt: 'ja' }))}
+              />
+              <span>Ja</span>
+            </label>
+            <label className="checkbox-field">
+              <input
+                type="radio"
+                name="auftragErledigt"
+                value="nein"
+                checked={formData.auftragErledigt === 'nein'}
+                onChange={() => setFormData(prev => ({ ...prev, auftragErledigt: 'nein' }))}
+              />
+              <span>Nein</span>
+            </label>
+          </div>
+        </fieldset>
 
         <p className="signature-notice">{LEISTUNGSAUFTRAG_CONFIRMATION_TEXT}</p>
 

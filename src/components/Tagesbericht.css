@@ -65,11 +65,27 @@
   gap: 1.5rem;
 }
 
+.checkbox-field-group {
+  border: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.checkbox-field-group .form-label {
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-options {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
 .checkbox-field {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 0 0 1.5rem;
+  margin: 0;
   font-size: 1rem;
   font-weight: 500;
   color: #333;
