@@ -441,13 +441,13 @@
   background-color: #45a049;
 }
 
-.btn-asana-form {
+.btn-aufgabenportal {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background-color: #F06A6A;
+  background-color: #1976d2;
   color: #ffffff;
   border: none;
   border-radius: 4px;
@@ -458,27 +458,6 @@
   transition: background-color 0.2s;
   flex: 1;
   min-width: 0;
-}
-
-.btn-asana-form:hover {
-  background-color: #E55A5A;
-}
-
-.btn-aufgabenportal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 1rem 2rem;
-  background-color: #1976d2;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: background-color 0.2s;
 }
 
 .btn-aufgabenportal:hover {
